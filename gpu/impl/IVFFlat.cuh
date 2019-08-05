@@ -51,7 +51,7 @@ class IVFFlat : public IVFBase {
   std::vector<float> getListVectors(int listId) const;
 
  protected:
-  void do_quantization(Tensor<float, 2, true>& input,
+  virtual void do_quantization(Tensor<float, 2, true>& input,
              int nprobe,
              Tensor<float, 2, true>& coarseDistances,
              Tensor<int, 2, true>& coarseIndices,
@@ -67,6 +67,23 @@ class IVFFlat : public IVFBase {
 
   /// Do we store data internally as float16 (versus float32)?
   const bool useFloat16_;
+};
+
+class IVFNoQuantization : public IVFFlat {
+public:
+  IVFNoQuantization(GpuResources* resources,
+          bool l2Distance,
+          bool useFloat16,
+          IndicesOptions indicesOptions,
+          MemorySpace space);
+
+protected:
+  void do_quantization(Tensor<float, 2, true>& input,
+             int nprobe,
+             Tensor<float, 2, true>& coarseDistances,
+             Tensor<int, 2, true>& coarseIndices,
+             bool exactDistance) override;
+
 };
 
 } } // namespace

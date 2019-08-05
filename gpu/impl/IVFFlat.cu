@@ -393,4 +393,22 @@ IVFFlat::getListVectors(int listId) const {
   return out;
 }
 
+
+IVFNoQuantization::IVFNoQuantization(GpuResources* resources,
+          bool l2Distance,
+          bool useFloat16,
+          IndicesOptions indicesOptions,
+          MemorySpace space) :
+        IVFFlat(resources, nullptr, l2Distance, useFloat16, indicesOptions, space)
+{
+}
+
+void
+IVFNoQuantization::do_quantization(Tensor<float, 2, true>& input,
+                 int nprobe,
+                 Tensor<float, 2, true>& coarseDistances,
+                 Tensor<int, 2, true>& coarseIndices,
+                 bool exactDistance) {
+}
+
 } } // namespace
