@@ -282,6 +282,19 @@ IVFFlat::classifyAndAddVectors(Tensor<float, 2, true>& vecs,
 }
 
 void
+IVFFlat::do_quantization(Tensor<float, 2, true>& input,
+                 int nprobe,
+                 Tensor<float, 2, true>& coarseDistances,
+                 Tensor<int, 2, true>& coarseIndices,
+                 bool exactDistance) {
+  quantizer_->query(input,
+                    nprobe,
+                    coarseDistances,
+                    coarseIndices,
+                    false);
+}
+
+void
 IVFFlat::query(Tensor<float, 2, true>& queries,
                int nprobe,
                int k,
@@ -308,7 +321,7 @@ IVFFlat::query(Tensor<float, 2, true>& queries,
 
   // Find the `nprobe` closest lists; we can use int indices both
   // internally and externally
-  quantizer_->query(queries,
+  this->do_quantization(queries,
                     nprobe,
                     coarseDistances,
                     coarseIndices,

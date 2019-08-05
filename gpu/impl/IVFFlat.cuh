@@ -50,6 +50,13 @@ class IVFFlat : public IVFBase {
   /// Return the vectors of a particular list back to the CPU
   std::vector<float> getListVectors(int listId) const;
 
+ protected:
+  void do_quantization(Tensor<float, 2, true>& input,
+             int nprobe,
+             Tensor<float, 2, true>& coarseDistances,
+             Tensor<int, 2, true>& coarseIndices,
+             bool exactDistance);
+
  private:
   /// Returns the size of our stored vectors, in bytes
   size_t getVectorMemorySize() const;
