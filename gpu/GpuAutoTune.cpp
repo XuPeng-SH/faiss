@@ -7,6 +7,7 @@
 
 #include "GpuAutoTune.h"
 #include <typeinfo>
+#include <memory>
 
 #include "GpuIndex.h"
 #include "../FaissAssert.h"
@@ -96,8 +97,6 @@ faiss::Index * index_gpu_to_cpu(const faiss::Index *gpu_index)
     return cl.clone_Index(gpu_index);
 }
 
-
-
 struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
     GpuResources *resources;
     int device;
@@ -164,6 +163,29 @@ struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
 
 };
 
+struct IVFQuantizerToGpuCloner : ToGpuCloner {
+    Index *clone_Index(const Index *index) override {
+        auto ifl = dynamic_cast<const faiss::IndexIVF *>(index);
+        GpuIndexIVFConfig config;
+        config.device = device;
+        config.indicesOptions = indicesOptions;
+        config.flatConfig.useFloat16 = useFloat16CoarseQuantizer;
+        config.flatConfig.storeTransposed = storeTransposed;
+        config.useFloat16IVFStorage = useFloat16;
+        config.storeQuantizer = storeQuantizer;
+        config.storeInvertedList = storeInvertedList;
+
+        GpuIndexIVF *res =
+            new GpuIndexIVF(resources,
+                    ifl->d,
+                    ifl->metric_type,
+                    ifl->nlist,
+                    config);
+
+        res->copyFrom(ifl);
+        return res;
+    }
+};
 
 faiss::Index * index_cpu_to_gpu(
        GpuResources* resources, int device,
@@ -171,8 +193,17 @@ faiss::Index * index_cpu_to_gpu(
        const GpuClonerOptions *options)
 {
     GpuClonerOptions defaults;
-    ToGpuCloner cl(resources, device, options ? *options : defaults);
-    return cl.clone_Index(index);
+    auto cloner_options = options ? *options : defaults;
+    std::shared_ptr<Cloner> cloner;
+    if (dynamic_cast<IndexIVF*>(index)) {
+        if (!cloner_options.storeInvertedList) {
+            cloner = std::make_shared<IVFQuantizerToGpuCloner>(resources, device, cloner_options);
+        }
+    }
+    if (!cloner) {
+        cloner = std::make_shared<ToGpuCloner>(resources, device, cloner_options);
+    }
+    return cloner->clone_Index(index);
 }
 
 struct ToGpuClonerMultiple: faiss::Cloner, GpuMultipleClonerOptions {
