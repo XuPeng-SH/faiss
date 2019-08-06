@@ -19,11 +19,15 @@ class GpuIndexIVFQuantizer : public GpuIndexIVF {
   /* void train(Index::idx_t n, const float* x) override; */
 
  protected:
-  /* void searchImpl_(int n, */
-  /*                  const float* x, */
-  /*                  int k, */
-  /*                  float* distances, */
-  /*                  Index::idx_t* labels) const override; */
+  void addImpl_(int n,
+                const float* x,
+                const Index::idx_t* ids) override;
+
+  void searchImpl_(int n,
+                   const float* x,
+                   int k,
+                   float* distances,
+                   Index::idx_t* labels) const override;
 };
 
 } } // namespace

@@ -14,4 +14,18 @@ void
 GpuIndexIVFQuantizer::reset() {
 }
 
+void
+GpuIndexIVFQuantizer::addImpl_(int n,
+                          const float* x,
+                          const Index::idx_t* xids) {
+}
+
+void
+GpuIndexIVFQuantizer::searchImpl_(int n,
+                             const float* x,
+                             int k,
+                             float* distances,
+                             Index::idx_t* labels) const {
+}
+
 } } // namespace
