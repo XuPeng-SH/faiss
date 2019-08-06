@@ -171,7 +171,6 @@ struct IVFQuantizerToGpuCloner : ToGpuCloner {
         config.indicesOptions = indicesOptions;
         config.flatConfig.useFloat16 = useFloat16CoarseQuantizer;
         config.flatConfig.storeTransposed = storeTransposed;
-        config.useFloat16IVFStorage = useFloat16;
         config.storeQuantizer = storeQuantizer;
         config.storeInvertedList = storeInvertedList;
 
