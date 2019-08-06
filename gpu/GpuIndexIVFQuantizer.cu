@@ -7,6 +7,8 @@
 
 
 #include "GpuIndexIVFQuantizer.h"
+#include "utils/DeviceUtils.h"
+#include "utils/CopyUtils.cuh"
 
 namespace faiss { namespace gpu {
 
@@ -43,7 +45,7 @@ GpuIndexIVFQuantizer::searchImpl_(int n,
   static_assert(sizeof(long) == sizeof(Index::idx_t), "size mismatch");
   Tensor<long, 2, true> outLabels(const_cast<long*>(labels), {n, k});
 
-  quantizer_->query(queries, nprobe_, outDistances, outLabels, false);
+  quantizer_->getGpuData()->query(queries, nprobe_, outDistances, outLabels, false);
 }
 
 } } // namespace
