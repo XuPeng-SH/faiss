@@ -22,6 +22,7 @@
 #include "GpuIndexFlat.h"
 #include "GpuIndexIVFFlat.h"
 #include "GpuIndexIVFPQ.h"
+#include "GpuIndexIVFQuantizer.h"
 #include "utils/DeviceUtils.h"
 
 namespace faiss { namespace gpu {
@@ -174,8 +175,8 @@ struct IVFQuantizerToGpuCloner : ToGpuCloner {
         config.storeQuantizer = storeQuantizer;
         config.storeInvertedList = storeInvertedList;
 
-        GpuIndexIVF *res =
-            new GpuIndexIVF(resources,
+        GpuIndexIVFQuantizer *res =
+            new GpuIndexIVFQuantizer(resources,
                     ifl->d,
                     ifl->metric_type,
                     ifl->nlist,
