@@ -172,22 +172,27 @@ struct IVFQuantizerToGpuCloner : ToGpuCloner {
 
     Index *clone_Index(const Index *index) override {
         auto ifl = dynamic_cast<const faiss::IndexIVF *>(index);
-        GpuIndexIVFConfig config;
+        /* GpuIndexIVFConfig config; */
+        /* config.device = device; */
+        /* config.indicesOptions = indicesOptions; */
+        /* config.flatConfig.useFloat16 = useFloat16CoarseQuantizer; */
+        /* config.flatConfig.storeTransposed = storeTransposed; */
+        /* config.storeQuantizer = storeQuantizer; */
+        /* config.storeInvertedList = storeInvertedList; */
+
+        /* GpuIndexIVFQuantizer *res = */
+        /*     new GpuIndexIVFQuantizer(resources, */
+        /*             ifl->d, */
+        /*             ifl->metric_type, */
+        /*             ifl->nlist, */
+        /*             config); */
+        GpuIndexFlatConfig config;
         config.device = device;
-        config.indicesOptions = indicesOptions;
-        config.flatConfig.useFloat16 = useFloat16CoarseQuantizer;
-        config.flatConfig.storeTransposed = storeTransposed;
-        config.storeQuantizer = storeQuantizer;
-        config.storeInvertedList = storeInvertedList;
+        config.useFloat16 = useFloat16;
+        config.storeTransposed = storeTransposed;
 
-        GpuIndexIVFQuantizer *res =
-            new GpuIndexIVFQuantizer(resources,
-                    ifl->d,
-                    ifl->metric_type,
-                    ifl->nlist,
-                    config);
 
-        res->copyFrom(ifl);
+        res->copyFrom(ifl->quantizer);
         return res;
     }
 };

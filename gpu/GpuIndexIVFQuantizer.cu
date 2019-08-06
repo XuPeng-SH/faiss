@@ -38,15 +38,15 @@ GpuIndexIVFQuantizer::searchImpl_(int n,
                              int k,
                              float* distances,
                              Index::idx_t* labels) const {
-  FAISS_ASSERT(n > 0);
+  /* FAISS_ASSERT(n > 0); */
 
-  Tensor<float, 2, true> queries(const_cast<float*>(x), {n, (int) this->d});
-  Tensor<float, 2, true> outDistances(distances, {n, k});
+  /* Tensor<float, 2, true> queries(const_cast<float*>(x), {n, (int) this->d}); */
+  /* Tensor<float, 2, true> outDistances(distances, {n, k}); */
 
-  static_assert(sizeof(long) == sizeof(Index::idx_t), "size mismatch");
-  Tensor<long, 2, true> outLabels(const_cast<long*>(labels), {n, k});
+  /* static_assert(sizeof(long) == sizeof(Index::idx_t), "size mismatch"); */
+  /* Tensor<long, 2, true> outLabels(const_cast<long*>(labels), {n, k}); */
 
-  quantizer_->getGpuData()->query(queries, nprobe_, outDistances, outLabels, false);
+  /* quantizer_->getGpuData()->query(queries, nprobe_, outDistances, outLabels, false); */
 }
 
 } } // namespace
