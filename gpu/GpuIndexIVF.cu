@@ -133,7 +133,7 @@ GpuIndexIVF::copyFrom(const faiss::IndexIVF* index) {
   // Since we're trained, the quantizer must have data
   FAISS_ASSERT(index->quantizer->ntotal > 0);
 
-  if (!ivfConfig_.flatConfig.storeQuantizer) {
+  if (!ivfConfig_.storeQuantizer) {
       return;
   }
 

@@ -26,9 +26,7 @@ struct GpuIndexFlatConfig : public GpuIndexConfig {
   inline GpuIndexFlatConfig()
       : useFloat16(false),
         useFloat16Accumulator(false),
-        storeTransposed(false),
-        storeQuantizer(true),
-        storeInvertedList(true) {
+        storeTransposed(false) {
   }
 
   /// Whether or not data is stored as float16
@@ -46,9 +44,6 @@ struct GpuIndexFlatConfig : public GpuIndexConfig {
   /// be transposed, and will increase storage requirements (we store
   /// data in both transposed and non-transposed layouts).
   bool storeTransposed;
-
-  bool storeQuantizer;
-  bool storeInvertedList;
 };
 
 /// Wrapper around the GPU implementation that looks like

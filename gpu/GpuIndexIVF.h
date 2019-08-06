@@ -21,8 +21,9 @@ class GpuIndexFlat;
 class GpuResources;
 
 struct GpuIndexIVFConfig : public GpuIndexConfig {
-  inline GpuIndexIVFConfig()
-      : indicesOptions(INDICES_64_BIT) {
+  inline GpuIndexIVFConfig(bool store_quantizer = true)
+      : indicesOptions(INDICES_64_BIT),
+        storeQuantizer(store_quantizer) {
   }
 
   /// Index storage options for the GPU
@@ -30,6 +31,9 @@ struct GpuIndexIVFConfig : public GpuIndexConfig {
 
   /// Configuration for the coarse quantizer object
   GpuIndexFlatConfig flatConfig;
+
+  bool storeQuantizer;
+  bool storeInvertedList;
 };
 
 class GpuIndexIVF : public GpuIndex {
