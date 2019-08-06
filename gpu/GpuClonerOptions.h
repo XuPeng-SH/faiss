@@ -26,6 +26,12 @@ struct GpuClonerOptions {
   /// for GpuIndexIVFPQ, are intermediate calculations in float16?
   bool useFloat16;
 
+  /// for IndexIVF
+  bool storeQuantizer;
+
+  /// for IndexIVF
+  bool storeInvertedList;
+
   /// use precomputed tables?
   bool usePrecomputed;
 

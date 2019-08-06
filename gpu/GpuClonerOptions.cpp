@@ -13,6 +13,8 @@ GpuClonerOptions::GpuClonerOptions()
     : indicesOptions(INDICES_64_BIT),
       useFloat16CoarseQuantizer(false),
       useFloat16(false),
+      storeQuantizer(true),
+      storeInvertedList(true),
       usePrecomputed(true),
       reserveVecs(0),
       storeTransposed(false),
