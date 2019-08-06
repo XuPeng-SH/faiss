@@ -195,7 +195,7 @@ faiss::Index * index_cpu_to_gpu(
     GpuClonerOptions defaults;
     auto cloner_options = options ? *options : defaults;
     std::shared_ptr<Cloner> cloner;
-    if (dynamic_cast<IndexIVF*>(index)) {
+    if (dynamic_cast<const IndexIVF*>(index)) {
         if (!cloner_options.storeInvertedList) {
             cloner = std::make_shared<IVFQuantizerToGpuCloner>(resources, device, cloner_options);
         }
