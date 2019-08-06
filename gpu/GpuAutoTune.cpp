@@ -22,7 +22,7 @@
 #include "GpuIndexFlat.h"
 #include "GpuIndexIVFFlat.h"
 #include "GpuIndexIVFPQ.h"
-#include "GpuIndexIVFQuantizer.h"
+/* #include "GpuIndexIVFQuantizer.h" */
 #include "utils/DeviceUtils.h"
 
 namespace faiss { namespace gpu {
