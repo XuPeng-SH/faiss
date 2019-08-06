@@ -165,6 +165,11 @@ struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
 };
 
 struct IVFQuantizerToGpuCloner : ToGpuCloner {
+    IVFQuantizerToGpuCloner(GpuResources *resources, int device,
+                const GpuClonerOptions &options):
+        ToGpuCloner(resources, device, options)
+    {}
+
     Index *clone_Index(const Index *index) override {
         auto ifl = dynamic_cast<const faiss::IndexIVF *>(index);
         GpuIndexIVFConfig config;
