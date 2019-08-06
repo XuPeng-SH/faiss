@@ -191,7 +191,7 @@ struct IVFQuantizerToGpuCloner : ToGpuCloner {
         config.useFloat16 = useFloat16;
         config.storeTransposed = storeTransposed;
 
-        return new GpuIndexFlat(resources, ifl->quantizer, config);
+        return new GpuIndexFlat(resources, dynamic_cast<const faiss::IndexFlat*>(ifl->quantizer), config);
     }
 };
 
