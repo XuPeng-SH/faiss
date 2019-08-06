@@ -14,6 +14,12 @@ namespace faiss { namespace gpu {
 
 class GpuIndexIVFQuantizer : public GpuIndexIVF {
  public:
+  GpuIndexIVFQuantizer(GpuResources* resources,
+              int dims,
+              faiss::MetricType metric,
+              int nlist,
+              GpuIndexIVFConfig config);
+
   void reset() override;
 
   /* void train(Index::idx_t n, const float* x) override; */

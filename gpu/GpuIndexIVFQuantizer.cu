@@ -10,6 +10,15 @@
 
 namespace faiss { namespace gpu {
 
+GpuIndexIVFQuantizer::GpuIndexIVFQuantizer(GpuResources* resources,
+                         int dims,
+                         faiss::MetricType metric,
+                         int nlist,
+                         GpuIndexIVFConfig config) :
+    GpuIndexIVF(resources, dims, metric, nlist, config) {
+
+}
+
 void
 GpuIndexIVFQuantizer::reset() {
 }
