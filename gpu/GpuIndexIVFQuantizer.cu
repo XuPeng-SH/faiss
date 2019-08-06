@@ -9,6 +9,7 @@
 #include "GpuIndexIVFQuantizer.h"
 #include "utils/DeviceUtils.h"
 #include "utils/CopyUtils.cuh"
+#include "impl/IVFFlat.cuh"
 
 namespace faiss { namespace gpu {
 
