@@ -93,7 +93,7 @@ GpuIndexIVFScalarQuantizer::copyFrom(const faiss::IndexIVFScalarQuantizer* index
   this->is_trained = true;
 
   // Copy our lists as well
-  index_ = new IVFFlat(resources_,
+  index_ = new IVFScalarQuantizer(resources_,
                        quantizer_->getGpuData(),
                        index->metric_type == faiss::METRIC_L2,
                        ivfSQConfig_.useFloat16IVFStorage,
