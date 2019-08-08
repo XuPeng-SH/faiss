@@ -11,7 +11,7 @@ AC_CONFIG_SRCDIR([Index.h])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([acinclude])
 
-: ${CXXFLAGS="-g -O3 -Wall -Wextra"}
+: ${CXXFLAGS="-g -O0 -Wall -Wextra"}
 
 # Checks for programs.
 AC_LANG(C++)

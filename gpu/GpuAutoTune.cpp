@@ -14,12 +14,14 @@
 #include "../IndexFlat.h"
 #include "../IndexIVF.h"
 #include "../IndexIVFFlat.h"
+#include "../IndexScalarQuantizer.h"
 #include "../IndexIVFPQ.h"
 #include "../IndexReplicas.h"
 #include "../VectorTransform.h"
 #include "../MetaIndexes.h"
 #include "GpuIndexFlat.h"
 #include "GpuIndexIVFFlat.h"
+#include "GpuIndexIVFScalarQuantizer.h"
 #include "GpuIndexIVFPQ.h"
 #include "utils/DeviceUtils.h"
 
@@ -115,6 +117,25 @@ struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
           config.storeTransposed = storeTransposed;
 
           return new GpuIndexFlat(resources, ifl, config);
+        } else if(auto ifl = dynamic_cast<const IndexIVFScalarQuantizer*>(index)) {
+            GpuIndexIVFScalarQuantizerConfig config;
+            config.device = device;
+            config.indicesOptions = indicesOptions;
+            config.flatConfig.useFloat16 = useFloat16CoarseQuantizer;
+            config.flatConfig.storeTransposed = storeTransposed;
+            config.useFloat16IVFStorage = useFloat16;
+            GpuIndexIVFScalarQuantizer* res = 
+                new GpuIndexIVFScalarQuantizer(resources,
+                                            ifl->d,
+                                            ifl->nlist,
+                                            ifl->metric_type,
+                                            config);
+            if(reserveVecs > 0 && ifl->ntotal == 0) {
+                res->reserveMemory(reserveVecs);
+            }
+
+            res->copyFrom(ifl);
+            return res;
         } else if(auto ifl = dynamic_cast<const faiss::IndexIVFFlat *>(index)) {
           GpuIndexIVFFlatConfig config;
           config.device = device;

@@ -40,7 +40,7 @@ libfaiss.$(SHAREDEXT): $(OBJ)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(CPUFLAGS) -c $< -o $@
 
 %.o: %.cu
-	$(NVCC) $(NVCCFLAGS) -g -O3 -c $< -o $@
+	$(NVCC) $(NVCCFLAGS) -g -O0 -c $< -o $@
 
 clean:
 	rm -f libfaiss.a libfaiss.$(SHAREDEXT)
