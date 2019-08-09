@@ -824,12 +824,13 @@ IndexIVF::dump() {
         auto codes = invlists->get_codes(i);
         int code_size = invlists->code_size;
 
-        std::cout << "Bucket ID: " << i << ", with code size: " << code_size << std::endl;
-        if(code_size == 1) {
+        std::cout << "Bucket ID: " << i << ", with code size: " << code_size << ", vectors number: " << numVecs << std::endl;
+        if(code_size == 8) {
+            // int8 types
             for (auto j=0; j < numVecs; ++j) {
                 std::cout << *(ids+j) << ": " << std::endl;
                 for(int k = 0; k < this->d; ++ k) {
-                    std::cout  << (int8_t)(codes[j * d + k]) << " ";
+                    printf("%d ", (int8_t)(codes[j * d + k]));
                 }
                 std::cout << std::endl;
             }

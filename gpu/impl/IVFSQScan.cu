@@ -21,6 +21,8 @@
  #include "../utils/StaticUtils.h"
  #include <thrust/host_vector.h>
  
+#define PRINT_LOG 1
+
  namespace faiss { namespace gpu {
  
  template <typename T>
@@ -98,16 +100,18 @@
                                float vmin,
                                float vdiff) {
      extern __shared__ float smem[];
+     #if PRINT_LOG
      printf("numVecs: %d, vmin: %f, vdiff: %f\n", numVecs, vmin, vdiff);
      int8_t* vec = (int8_t*)vecData;
      for(int i = 0; i < numVecs; ++ i) {
        printf("vec num: %d\n", i);
       for(int d = 0; d < dim; ++ d) {
         int8_t di = vec[i * dim + d];
-        printf("%lf ", (float)di);
+        printf("%d ", di);
       }
       printf("\n");
      }
+     #endif
 
 
      T* vecs = (T*) vecData;
@@ -177,8 +181,9 @@
              float vdiff) {
    auto queryId = blockIdx.y;
    auto probeId = blockIdx.x;
-
+   #if PRINT_LOG
    printf("YYY\n");
+   #endif
    // This is where we start writing out data
    // We ensure that before the array (at offset -1), there is a 0 value
    int outBase = *(prefixSumOffsets[queryId][probeId].data() - 1);
@@ -194,9 +199,9 @@
    auto numVecs = listLengths[listId];
    auto dim = queries.getSize(1);
    auto distanceOut = distance[outBase].data();
-
+   #if PRINT_LOG
    printf("%s, numVecs: %d dim: %d\n", __func__, numVecs, dim);
-
+   #endif
    IVFScalarQuantizerScan<Dims, L2, T>::scan(query, vecs, numVecs, dim, distanceOut, vmin, vdiff);
  }
  

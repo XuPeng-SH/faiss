@@ -112,7 +112,7 @@ GpuIndexIVFSQ::dump() {
         std::cout << "GpuIndice[" << i << "] = ";
         auto indices = index_->getListIndices(i);
         for (auto& id : indices) {
-            std::cout << id << " | ";
+            std::cout << id << " ";
         }
         std::cout << std::endl;
     }
