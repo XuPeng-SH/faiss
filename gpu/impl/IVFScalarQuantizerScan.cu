@@ -51,8 +51,12 @@
                                void* vecData,
                                int numVecs,
                                int dim,
-                               float* distanceOut) {
+                               float* distanceOut,
+                               float vmin,
+                               float vdiff) {
      extern __shared__ float smem[];
+     printf("numVecs: %d\n", numVecs);
+
      T* vecs = (T*) vecData;
  
      for (int vec = 0; vec < numVecs; ++vec) {
@@ -90,8 +94,22 @@
                                void* vecData,
                                int numVecs,
                                int dim,
-                               float* distanceOut) {
+                               float* distanceOut,
+                               float vmin,
+                               float vdiff) {
      extern __shared__ float smem[];
+     printf("numVecs: %d, vmin: %f, vdiff: %f\n", numVecs, vmin, vdiff);
+     int8_t* vec = (int8_t*)vecData;
+     for(int i = 0; i < numVecs; ++ i) {
+       printf("vec num: %d\n", i);
+      for(int d = 0; d < dim; ++ d) {
+        int8_t di = vec[i * dim + d];
+        printf("%lf ", (float)di);
+      }
+      printf("\n");
+     }
+
+
      T* vecs = (T*) vecData;
  
      float queryVal = query[threadIdx.x];
@@ -104,7 +122,9 @@
  
  #pragma unroll
        for (int j = 0; j < kUnroll; ++j) {
-         vecVal[j] = ConvertTo<float>::to(vecs[(i + j) * dim + threadIdx.x]);
+         float vec_dim = ConvertTo<float>::to(vecs[(i + j) * dim + threadIdx.x]);
+         vec_dim = (vec_dim + 0.5f) / 255.0f;
+         vecVal[j] = vmin + vec_dim * vdiff;
        }
  
  #pragma unroll
@@ -152,10 +172,13 @@
              void** allListData,
              int* listLengths,
              Tensor<int, 2, true> prefixSumOffsets,
-             Tensor<float, 1, true> distance) {
+             Tensor<float, 1, true> distance,
+             float vmin,
+             float vdiff) {
    auto queryId = blockIdx.y;
    auto probeId = blockIdx.x;
- 
+
+   printf("YYY\n");
    // This is where we start writing out data
    // We ensure that before the array (at offset -1), there is a 0 value
    int outBase = *(prefixSumOffsets[queryId][probeId].data() - 1);
@@ -171,8 +194,10 @@
    auto numVecs = listLengths[listId];
    auto dim = queries.getSize(1);
    auto distanceOut = distance[outBase].data();
- 
-   IVFScalarQuantizerScan<Dims, L2, T>::scan(query, vecs, numVecs, dim, distanceOut);
+
+   printf("%s, numVecs: %d dim: %d\n", __func__, numVecs, dim);
+
+   IVFScalarQuantizerScan<Dims, L2, T>::scan(query, vecs, numVecs, dim, distanceOut, vmin, vdiff);
  }
  
  void
@@ -192,7 +217,8 @@ runIVFScalarQuantizerScanTile(Tensor<float, 2, true>& queries,
                     bool useFloat16,
                     Tensor<float, 2, true>& outDistances,
                     Tensor<long, 2, true>& outIndices,
-                    cudaStream_t stream) {
+                    cudaStream_t stream,
+                    std::shared_ptr<ScalarQuantizer>& sq) {
    // Calculate offset lengths, so we know where to write out
    // intermediate results
    runCalcListOffsets(listIds, listLengths, prefixSumOffsets, thrustMem, stream);
@@ -211,6 +237,9 @@ runIVFScalarQuantizerScanTile(Tensor<float, 2, true>& queries,
    auto block = dim3(numThreads);
    // All exact dim kernels are unrolled by 4, hence the `4`
    auto smem = sizeof(float) * utils::divUp(numThreads, kWarpSize) * 4;
+
+   float vmin = sq->trained[0];
+   float vdiff = sq->trained[1];
  
  #define RUN_IVF_FLAT(DIMS, L2, T)                                       \
    do {                                                                  \
@@ -221,7 +250,9 @@ runIVFScalarQuantizerScanTile(Tensor<float, 2, true>& queries,
          listData.data().get(),                                          \
          listLengths.data().get(),                                       \
          prefixSumOffsets,                                               \
-         allDistances);                                                  \
+         allDistances,                                            \
+         vmin,                                                    \
+         vdiff);                                                  \
    } while (0)
  
  #ifdef FAISS_USE_FLOAT16
@@ -316,7 +347,8 @@ runIVFScalarQuantizerScanTile(Tensor<float, 2, true>& queries,
                 Tensor<float, 2, true>& outDistances,
                 // output
                 Tensor<long, 2, true>& outIndices,
-                GpuResources* res) {
+                GpuResources* res,
+                std::shared_ptr<ScalarQuantizer>& sq) {
    constexpr int kMinQueryTileSize = 8;
    constexpr int kMaxQueryTileSize = 128;
    constexpr int kThrustMemSize = 16384;
@@ -459,7 +491,8 @@ runIVFScalarQuantizerScanTile(Tensor<float, 2, true>& queries,
                         useFloat16,
                         outDistanceView,
                         outIndicesView,
-                        streams[curStream]);
+                        streams[curStream],
+                        sq);
  
      curStream = (curStream + 1) % 2;
    }

@@ -29,28 +29,29 @@
                   bool l2Distance,
                   bool useFloat16,
                   IndicesOptions indicesOptions,
-                  MemorySpace space) :
+                  MemorySpace space,
+                  std::shared_ptr<ScalarQuantizer> scalar_quantizer_ptr) :
      IVFBase(resources,
              quantizer,
  #ifdef FAISS_USE_FLOAT16
              useFloat16 ?
              sizeof(half) * quantizer->getDim()
-             : sizeof(float) * quantizer->getDim(),
+             : sizeof(int8_t) * quantizer->getDim(),
  #else
              sizeof(int8_t) * quantizer->getDim(),
  #endif
              indicesOptions,
              space),
      l2Distance_(l2Distance),
-     useFloat16_(useFloat16) {
+     useFloat16_(useFloat16),
+     scalar_quantizer_ptr_(scalar_quantizer_ptr) {
  }
  
  IVFScalarQuantizer::~IVFScalarQuantizer() {
  }
- 
  void
  IVFScalarQuantizer::addCodeVectorsFromCpu(int listId,
-                                const int8_t* vecs,
+                                const float* vecs,
                                 const long* indices,
                                 size_t numVecs) {
    // This list must already exist
@@ -326,7 +327,8 @@
                   useFloat16_,
                   outDistances,
                   outIndices,
-                  resources_);
+                  resources_,
+                  scalar_quantizer_ptr_);
  
    // If the GPU isn't storing indices (they are on the CPU side), we
    // need to perform the re-mapping here

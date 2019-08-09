@@ -9,6 +9,7 @@
  #pragma once
 
  #include "IVFBase.cuh"
+ #include "../../IndexScalarQuantizer.h"
  
  namespace faiss { namespace gpu {
  
@@ -21,7 +22,9 @@
            bool l2Distance,
            bool useFloat16,
            IndicesOptions indicesOptions,
-           MemorySpace space);
+           MemorySpace space,
+           std::shared_ptr<ScalarQuantizer> scalar_quantizer_ptr
+           );
  
    ~IVFScalarQuantizer() override;
  
@@ -60,6 +63,9 @@
  
    /// Do we store data internally as float16 (versus float32)?
    const bool useFloat16_;
+
+   std::shared_ptr<ScalarQuantizer> scalar_quantizer_ptr_;
+
  };
  
  } } // namespace

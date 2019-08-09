@@ -10,6 +10,7 @@
 
  #include "../GpuIndicesOptions.h"
  #include "../utils/Tensor.cuh"
+ #include "../../IndexScalarQuantizer.h"
  #include <thrust/device_vector.h>
  
  namespace faiss { namespace gpu {
@@ -30,7 +31,8 @@
                      Tensor<float, 2, true>& outDistances,
                      // output
                      Tensor<long, 2, true>& outIndices,
-                     GpuResources* res);
+                     GpuResources* res,
+                     std::shared_ptr<ScalarQuantizer>& sq);
  
  } } // namespace
  

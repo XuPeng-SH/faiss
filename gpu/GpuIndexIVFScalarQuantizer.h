@@ -9,12 +9,13 @@
 #pragma once
 
 #include "GpuIndexIVF.h"
+#include "impl/IVFScalarQuantizer.cuh"
 
 namespace faiss { struct IndexIVFScalarQuantizer; }
 
 namespace faiss { namespace gpu {
 
-class IVFScalarQuantizer;
+// class IVFScalarQuantizer;
 
 struct GpuIndexIVFScalarQuantizerConfig : public GpuIndexIVFConfig {
   inline GpuIndexIVFScalarQuantizerConfig()
@@ -85,7 +86,7 @@ class GpuIndexIVFScalarQuantizer : public GpuIndexIVF {
   size_t reserveMemoryVecs_;
 
   /// Instance that we own; contains the inverted list
-  IVFScalarQuantizer* index_;
+  IVFScalarQuantizer* index_ = nullptr;
 };
 
 } } // namespace

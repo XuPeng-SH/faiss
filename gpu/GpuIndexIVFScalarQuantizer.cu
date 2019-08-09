@@ -18,6 +18,7 @@
 #include "utils/Float16.cuh"
 
 #include <limits>
+#include <memory>
 
 namespace faiss { namespace gpu {
 
@@ -92,13 +93,21 @@ GpuIndexIVFScalarQuantizer::copyFrom(const faiss::IndexIVFScalarQuantizer* index
   // Otherwise, we can populate ourselves from the other index
   this->is_trained = true;
 
+  int dim = index->sq.d;
+  ScalarQuantizer::QuantizerType qtype = index->sq.qtype;
+
+  std::shared_ptr<faiss::ScalarQuantizer> scalar_quantizer_ptr = std::shared_ptr<faiss::ScalarQuantizer>(new ScalarQuantizer(dim, qtype));
+  scalar_quantizer_ptr->trained = index->sq.trained;
+  // std::make_shared<faiss::ScalarQuantizer>(index.sq.d, index.sq.qtype);
+
   // Copy our lists as well
   index_ = new IVFScalarQuantizer(resources_,
                        quantizer_->getGpuData(),
                        index->metric_type == faiss::METRIC_L2,
                        ivfSQConfig_.useFloat16IVFStorage,
                        ivfSQConfig_.indicesOptions,
-                       memorySpace_);
+                       memorySpace_,
+                       scalar_quantizer_ptr);
   InvertedLists *ivf = index->invlists;
 
   for (size_t i = 0; i < ivf->nlist; ++i) {
@@ -184,13 +193,16 @@ GpuIndexIVFScalarQuantizer::train(Index::idx_t n, const float* x) {
 
   trainQuantizer_(n, x);
 
+  std::shared_ptr<ScalarQuantizer> scalar_quantizer_ptr = std::make_shared<ScalarQuantizer>(this->d, ScalarQuantizer::QT_8bit);
+
   // The quantizer is now trained; construct the IVF index
-  index_ = new IVFFlat(resources_,
+  index_ = new IVFScalarQuantizer(resources_,
                        quantizer_->getGpuData(),
                        this->metric_type == faiss::METRIC_L2,
                        ivfSQConfig_.useFloat16IVFStorage,
                        ivfSQConfig_.indicesOptions,
-                       memorySpace_);
+                       memorySpace_,
+                       scalar_quantizer_ptr);
 
   if (reserveMemoryVecs_) {
     index_->reserveMemory(reserveMemoryVecs_);
