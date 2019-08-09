@@ -21,7 +21,7 @@
  #include "../utils/StaticUtils.h"
  #include <thrust/host_vector.h>
  
-#define PRINT_LOG 1
+#define PRINT_LOG 0
 
  namespace faiss { namespace gpu {
  
@@ -126,6 +126,7 @@
  
  #pragma unroll
        for (int j = 0; j < kUnroll; ++j) {
+         printf("vec nums: %d, thread id: %d, data: %d\n", numVecs, threadIdx.x, vecs[(i + j) * dim + threadIdx.x]);
          float vec_dim = ConvertTo<float>::to(vecs[(i + j) * dim + threadIdx.x]);
          vec_dim = (vec_dim + 0.5f) / 255.0f;
          vecVal[j] = vmin + vec_dim * vdiff;
@@ -244,6 +245,8 @@ runIVFScalarQuantizerScanTile(Tensor<float, 2, true>& queries,
 
    float vmin = gsq.vmin;
    float vdiff = gsq.vdiff;
+
+   
  
  #define RUN_IVF_FLAT(DIMS, L2, T)                                       \
    do {                                                                  \
@@ -262,9 +265,9 @@ runIVFScalarQuantizerScanTile(Tensor<float, 2, true>& queries,
  #define HANDLE_DIM_CASE(DIMS)                   \
    do {                                          \
      if (l2Distance) {                           \
-         RUN_IVF_FLAT(DIMS, true, float);        \
+         RUN_IVF_FLAT(DIMS, true, int8_t);        \
      } else {                                    \
-         RUN_IVF_FLAT(DIMS, false, float);       \
+         RUN_IVF_FLAT(DIMS, false, int8_t);       \
      }                                           \
    } while (0)
  

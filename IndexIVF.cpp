@@ -830,7 +830,7 @@ IndexIVF::dump() {
             for (auto j=0; j < numVecs; ++j) {
                 std::cout << *(ids+j) << ": " << std::endl;
                 for(int k = 0; k < this->d; ++ k) {
-                    printf("%d ", (int8_t)(codes[j * d + k]));
+                    printf("%u ", (uint8_t)(codes[j * d + k]));
                 }
                 std::cout << std::endl;
             }

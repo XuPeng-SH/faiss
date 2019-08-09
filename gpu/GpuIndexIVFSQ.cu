@@ -116,6 +116,14 @@ GpuIndexIVFSQ::dump() {
         }
         std::cout << std::endl;
     }
+    for (auto i=0; i<index_->getNumLists(); ++i) {
+        std::cout << "GpuData[" << i << "] = ";
+        auto data = index_->getListVectors(i);
+        for (auto& each : data) {
+            std::cout << (unsigned)each << " ";
+        }
+        std::cout << std::endl;
+    }
 
     std::cout << "Trained data size = "  << index_->getTrainedData()->capacity() << std::endl;
 }

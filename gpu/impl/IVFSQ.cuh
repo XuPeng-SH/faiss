@@ -28,6 +28,8 @@ public:
    void addCodeVectorsFromCpu(int listId, const VecT* vecs, const long* indices, size_t numVecs);
  
    void addTrainedDataFromCpu(const uint8_t* trained, size_t numData);
+
+   std::vector<uint8_t> getListVectors(int listId) const;
  
    void query(Tensor<float, 2, true>& queries,
               int nprobe,

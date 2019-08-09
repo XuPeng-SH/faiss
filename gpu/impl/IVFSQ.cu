@@ -80,7 +80,25 @@ IVFSQ::addTrainedDataFromCpu(const uint8_t* trained,
                             size_t numData) {
     addTrainedDataFromCpu_(trained, numData);
 }
- 
+
+std::vector<uint8_t>
+IVFSQ::getListVectors(int listId) const {
+  FAISS_ASSERT(listId < deviceListData_.size());
+  auto& encVecs = *deviceListData_[listId];
+
+  auto stream = resources_->getDefaultStreamCurrentDevice();
+
+  size_t num = encVecs.size() / sizeof(uint8_t);
+
+  Tensor<uint8_t, 1, true> dev((uint8_t*) encVecs.data(), {(int) num});
+
+  std::vector<uint8_t> out(num);
+  HostTensor<uint8_t, 1, true> host(out.data(), {(int) num});
+  host.copyFrom(dev, stream);
+
+  return out;
+}
+
  void
  IVFSQ::query(Tensor<float, 2, true>& queries,
                 int nprobe,
