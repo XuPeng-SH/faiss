@@ -27,7 +27,7 @@ IVFSQ::IVFSQ(GpuResources* resources,
                 float vmin) :
     IVFBase(resources,
             coarse_quantizer,
-            code_size * coarse_quantizer->getDim(),
+            code_size,
             indicesOptions,
             space),
     l2Distance_(l2Distance),

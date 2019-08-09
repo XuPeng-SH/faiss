@@ -75,7 +75,6 @@ GpuIndexIVFSQ::copyFrom(const CpuIndexT* index) {
   float vmin = index->sq.trained[0];
   float vdiff = index->sq.trained[1];
 
-
   index_ = new ImplT(resources_,
           quantizer_->getGpuData(),
           index->sq.code_size,
@@ -117,12 +116,17 @@ GpuIndexIVFSQ::dump() {
         std::cout << std::endl;
     }
     for (auto i=0; i<index_->getNumLists(); ++i) {
-        std::cout << "GpuData[" << i << "] = ";
-        auto data = index_->getListVectors(i);
-        for (auto& each : data) {
-            std::cout << (unsigned)each << " ";
+        auto indices = index_->getListIndices(i);
+        std::cout << "GpuData[" << i << "] with size: " << indices.size();
+        auto data_array = index_->getListVectors(i);
+        for(auto j = 0; j < indices.size(); ++ j) {
+          std::cout << indices[j] << ": " << std::endl;
+          for(int k = 0; k < this->d; ++ k) {
+            uint8_t data = data_array[j * this->d + k];
+            printf("%d ", data);
+          }
+          std::cout << std::endl;
         }
-        std::cout << std::endl;
     }
 
     std::cout << "Trained data size = "  << index_->getTrainedData()->capacity() << std::endl;
