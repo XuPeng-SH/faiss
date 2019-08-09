@@ -133,20 +133,9 @@ GpuIndexIVF::copyFrom(const faiss::IndexIVF* index) {
   // Since we're trained, the quantizer must have data
   FAISS_ASSERT(index->quantizer->ntotal > 0);
 
-  if (index->metric_type == faiss::METRIC_L2) {
-    auto q = dynamic_cast<faiss::IndexFlatL2*>(index->quantizer);
-    FAISS_ASSERT(q);
-
-    quantizer_->copyFrom(q);
-  } else if (index->metric_type == faiss::METRIC_INNER_PRODUCT) {
-    auto q = dynamic_cast<faiss::IndexFlatIP*>(index->quantizer);
-    FAISS_ASSERT(q);
-
-    quantizer_->copyFrom(q);
-  } else {
-    // unknown metric type
-    FAISS_ASSERT(false);
-  }
+  auto q = dynamic_cast<faiss::IndexFlat*>(index->quantizer);
+  FAISS_ASSERT(q);
+  quantizer_->copyFrom(q);
 }
 
 void

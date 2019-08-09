@@ -39,6 +39,11 @@ struct GpuClonerOptions {
   bool verbose;
 };
 
+struct CpuToGpuClonerOptions : public GpuClonerOptions {
+    CpuToGpuClonerOptions();
+    bool readonly;
+};
+
 struct GpuMultipleClonerOptions : public GpuClonerOptions {
   GpuMultipleClonerOptions ();
 

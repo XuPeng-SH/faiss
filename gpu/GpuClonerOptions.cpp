@@ -19,6 +19,10 @@ GpuClonerOptions::GpuClonerOptions()
       verbose(false) {
 }
 
+CpuToGpuClonerOptions::CpuToGpuClonerOptions()
+    : readonly(false) {
+}
+
 GpuMultipleClonerOptions::GpuMultipleClonerOptions()
     : shard(false),
       shard_type(1)

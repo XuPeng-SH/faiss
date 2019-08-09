@@ -57,6 +57,8 @@ class IVFBase {
   /// Return the list indices of a particular list back to the CPU
   std::vector<long> getListIndices(int listId) const;
 
+  DeviceVector<unsigned char>* getTrainedData() { return deviceTrained_.get(); };
+
  protected:
   /// Reclaim memory consumed on the device for our inverted lists
   /// `exact` means we trim exactly to the memory needed
@@ -74,6 +76,8 @@ class IVFBase {
   void addIndicesFromCpu_(int listId,
                           const long* indices,
                           size_t numVecs);
+
+  void addTrainedDataFromCpu_(const uint8_t* trained, size_t numData);
 
  protected:
   /// Collection of GPU resources that we use
@@ -118,6 +122,8 @@ class IVFBase {
   /// resizing of deviceLists_
   std::vector<std::unique_ptr<DeviceVector<unsigned char>>> deviceListData_;
   std::vector<std::unique_ptr<DeviceVector<unsigned char>>> deviceListIndices_;
+
+  std::unique_ptr<DeviceVector<unsigned char>> deviceTrained_;
 
   /// If we are storing indices on the CPU (indicesOptions_ is
   /// INDICES_CPU), then this maintains a CPU-side map of what

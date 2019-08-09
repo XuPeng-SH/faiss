@@ -23,6 +23,13 @@ class GpuResources;
 faiss::Index * index_gpu_to_cpu(const faiss::Index *gpu_index);
 
 /// converts any CPU index that can be converted to GPU
+faiss::Index * cpu_to_gpu(
+       GpuResources* resources, int device,
+       const faiss::Index *index,
+       const CpuToGpuClonerOptions *options = nullptr);
+
+
+/// converts any CPU index that can be converted to GPU
 faiss::Index * index_cpu_to_gpu(
        GpuResources* resources, int device,
        const faiss::Index *index,

@@ -92,6 +92,7 @@ IVFBase::reset() {
   deviceListIndexPointers_.resize(numLists_, nullptr);
   deviceListLengths_.resize(numLists_, 0);
   maxListLength_ = 0;
+  deviceTrained_.reset(new DeviceVector<unsigned char>(space_));
 }
 
 int
@@ -280,6 +281,17 @@ IVFBase::addIndicesFromCpu_(int listId,
   if (prevIndicesData != listIndices->data()) {
     deviceListIndexPointers_[listId] = listIndices->data();
   }
+}
+
+void
+IVFBase::addTrainedDataFromCpu_(const uint8_t* trained,
+                            size_t numData) {
+  auto stream = resources_->getDefaultStreamCurrentDevice();
+
+  deviceTrained_->append((unsigned char*)trained,
+                             numData,
+                             stream,
+                             true);
 }
 
 } } // namespace

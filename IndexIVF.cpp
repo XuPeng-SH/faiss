@@ -13,6 +13,7 @@
 #include <omp.h>
 
 #include <cstdio>
+#include <iostream>
 #include <memory>
 
 #include "utils.h"
@@ -815,6 +816,27 @@ void IndexIVF::copy_subset_to (IndexIVF & other, int subset_type,
 
 }
 
+void
+IndexIVF::dump() {
+    for (auto i = 0; i < invlists->nlist; ++ i) {
+        auto numVecs = invlists->list_size(i);
+        auto ids = invlists->get_ids(i);
+        auto codes = invlists->get_codes(i);
+        int code_size = invlists->code_size;
+
+        std::cout << "Bucket ID: " << i << ", with code size: " << code_size << std::endl;
+        if(code_size == 1) {
+            for (auto j=0; j < numVecs; ++j) {
+                std::cout << *(ids+j) << ": " << std::endl;
+                for(int k = 0; k < this->d; ++ k) {
+                    std::cout  << (int8_t)(codes[j * d + k]) << " ";
+                }
+                std::cout << std::endl;
+            }
+        }
+        std::cout << "Bucket End." << std::endl;
+    }
+}
 
 IndexIVF::~IndexIVF()
 {

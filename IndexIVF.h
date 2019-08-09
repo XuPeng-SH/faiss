@@ -260,6 +260,8 @@ struct IndexIVF: Index, Level1Quantizer {
     /// replace the inverted lists, old one is deallocated if own_invlists
     void replace_invlists (InvertedLists *il, bool own=false);
 
+    void dump();
+
     IndexIVF ();
 };
 
