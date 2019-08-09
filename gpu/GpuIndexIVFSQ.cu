@@ -117,10 +117,10 @@ GpuIndexIVFSQ::dump() {
     }
     for (auto i=0; i<index_->getNumLists(); ++i) {
         auto indices = index_->getListIndices(i);
-        std::cout << "GpuData[" << i << "] with size: " << indices.size();
+        std::cout << "GpuData[" << i << "] with size: " << indices.size() << std::endl;
         auto data_array = index_->getListVectors(i);
         for(auto j = 0; j < indices.size(); ++ j) {
-          std::cout << indices[j] << ": " << std::endl;
+          std::cout << "Dim_" << indices[j] << ": " << std::endl;
           for(int k = 0; k < this->d; ++ k) {
             uint8_t data = data_array[j * this->d + k];
             printf("%d ", data);
