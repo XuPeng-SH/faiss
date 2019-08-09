@@ -117,8 +117,13 @@ GpuIndexIVFSQ::dump() {
     }
     for (auto i=0; i<index_->getNumLists(); ++i) {
         auto indices = index_->getListIndices(i);
-        std::cout << "GpuData[" << i << "] with size: " << indices.size();
         auto data_array = index_->getListVectors(i);
+        std::cout << "GpuData[" << i << "] with size: " << data_array.size() << std::endl;
+        
+        // for(auto data: data_array) {
+        //   std::cout << (unsigned)data << " ";
+        // }
+        // std::cout << std::endl;
         for(auto j = 0; j < indices.size(); ++ j) {
           std::cout << indices[j] << ": " << std::endl;
           for(int k = 0; k < this->d; ++ k) {
