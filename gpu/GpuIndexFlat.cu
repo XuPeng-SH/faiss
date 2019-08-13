@@ -94,6 +94,12 @@ GpuIndexFlat::copyFrom(const faiss::IndexFlat* index) {
                index->ntotal,
                resources_->getDefaultStream(device_));
   }
+
+  xb_.clear();
+
+  if (config_.storeInCpu) {
+      xb_ = index->xb;
+  }
 }
 
 void
@@ -225,6 +231,11 @@ GpuIndexFlat::searchImpl_(int n,
 void
 GpuIndexFlat::reconstruct(faiss::Index::idx_t key,
                           float* out) const {
+  if(config_.storeInCpu && xb_.size() > 0) {
+      memcpy (out, &(this->xb_[key * this->d]), sizeof(*out) * this->d);
+      return;
+  }
+
   DeviceScope scope(device_);
 
   FAISS_THROW_IF_NOT_MSG(key < this->ntotal, "index out of bounds");

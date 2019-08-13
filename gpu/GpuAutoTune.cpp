@@ -115,6 +115,7 @@ struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
           config.device = device;
           config.useFloat16 = useFloat16;
           config.storeTransposed = storeTransposed;
+          config.storeInCpu = storeInCpu;
 
           return new GpuIndexFlat(resources, ifl, config);
 #if 0
@@ -125,7 +126,7 @@ struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
             config.flatConfig.useFloat16 = useFloat16CoarseQuantizer;
             config.flatConfig.storeTransposed = storeTransposed;
             config.useFloat16IVFStorage = useFloat16;
-            GpuIndexIVFScalarQuantizer* res = 
+            GpuIndexIVFScalarQuantizer* res =
                 new GpuIndexIVFScalarQuantizer(resources,
                                             ifl->d,
                                             ifl->nlist,

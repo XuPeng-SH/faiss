@@ -16,6 +16,7 @@ GpuClonerOptions::GpuClonerOptions()
       usePrecomputed(true),
       reserveVecs(0),
       storeTransposed(false),
+      storeInCpu(false),
       verbose(false) {
 }
 
