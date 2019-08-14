@@ -236,7 +236,7 @@ void IndexIVF::search (idx_t n, const float *x, idx_t k,
     quantizer->search (n, x, nprobe, coarse_dis.get(), idx.get());
     indexIVF_stats.quantization_time += getmillisecs() - t0;
 
-    if (trace) {
+    if (verbose) {
         for(auto i=0; i<n; i++) {
             std::cout << "Centroids_" << i << ": ";
             for (auto j=0; j<nprobe; j++) {
