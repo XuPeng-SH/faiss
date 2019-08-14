@@ -76,6 +76,7 @@ struct Index {
     int d;                 ///< vector dimension
     idx_t ntotal;          ///< total nb of indexed vectors
     bool verbose;          ///< verbosity level
+    bool trace;
 
     /// set if the Index does not require training, or if training is
     /// done already

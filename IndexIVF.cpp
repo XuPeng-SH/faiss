@@ -236,6 +236,22 @@ void IndexIVF::search (idx_t n, const float *x, idx_t k,
     quantizer->search (n, x, nprobe, coarse_dis.get(), idx.get());
     indexIVF_stats.quantization_time += getmillisecs() - t0;
 
+    if (trace) {
+        for(auto i=0; i<n; i++) {
+            std::cout << "Centroids_" << i << ": ";
+            for (auto j=0; j<nprobe; j++) {
+                std::cout << idx.get()[i*nprobe+j] << " ";
+            }
+            std::cout << std::endl;
+        }
+        for(auto i=0; i<n; i++) {
+            std::cout << "Distance_" << i << ": ";
+            for (auto j=0; j<nprobe; j++) {
+                std::cout << coarse_dis.get()[i*nprobe+j] << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
     t0 = getmillisecs();
     invlists->prefetch_lists (idx.get(), n * nprobe);
 
