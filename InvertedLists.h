@@ -56,6 +56,9 @@ struct InvertedLists {
      */
     virtual const idx_t * get_ids (size_t list_no) const = 0;
 
+    virtual void get_ids(std::vector<idx_t>& ids, std::vector<size_t>& list_length);
+    virtual void get_codes(std::vector<uint8_t>& codes);
+
     /// release codes returned by get_codes (default implementation is nop
     virtual void release_codes (size_t list_no, const uint8_t *codes) const;
 
@@ -188,6 +191,9 @@ struct ArrayInvertedLists: InvertedLists {
     size_t list_size(size_t list_no) const override;
     const uint8_t * get_codes (size_t list_no) const override;
     const idx_t * get_ids (size_t list_no) const override;
+
+    void get_ids(std::vector<idx_t>& ids, std::vector<size_t>& list_length) override;
+    void get_codes(std::vector<uint8_t>& codes) override;
 
     size_t add_entries (
            size_t list_no, size_t n_entry,
