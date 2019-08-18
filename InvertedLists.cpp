@@ -39,11 +39,11 @@ InvertedLists::idx_t InvertedLists::get_single_id (
     return get_ids(list_no)[offset];
 }
 
-void InvertedLists::get_ids(std::vector<idx_t>& ids, std::vector<size_t>& list_length) {
+void InvertedLists::get_all_ids(std::vector<idx_t>& ids, std::vector<size_t>& list_length) {
 
 }
 
-void InvertedLists::get_codes(std::vector<uint8_t>& codes) {
+void InvertedLists::get_all_codes(std::vector<uint8_t>& codes) {
 
 }
 
@@ -182,7 +182,7 @@ const InvertedLists::idx_t * ArrayInvertedLists::get_ids (size_t list_no) const
     return ids[list_no].data();
 }
 
-void ArrayInvertedLists::get_ids(std::vector<idx_t>& list_ids, std::vector<size_t>& list_length) {
+void ArrayInvertedLists::get_all_ids(std::vector<idx_t>& list_ids, std::vector<size_t>& list_length) {
     list_ids.clear();
     list_length.clear();
     for(auto& each_ids : ids) {
@@ -191,7 +191,7 @@ void ArrayInvertedLists::get_ids(std::vector<idx_t>& list_ids, std::vector<size_
     }
 }
 
-void ArrayInvertedLists::get_codes(std::vector<uint8_t>& list_codes) {
+void ArrayInvertedLists::get_all_codes(std::vector<uint8_t>& list_codes) {
     list_codes.clear();
     for(auto& each_codes : codes) {
         list_codes.insert(list_codes.end(), each_codes.begin(), each_codes.end());

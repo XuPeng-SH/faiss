@@ -106,10 +106,10 @@ IVFFlat::copyCodeVectorsFromCpu(const float* vecs,
   size_t pos = 0;
   for (auto& device_data : deviceListData_) {
       auto data = deviceData_->data() + pos;
-      device_data->reset(data, list_length[listId], list_length[listId]);
+      device_data->reset(data, list_length[listId]*bytesPerVector_, list_length[listId]*bytesPerVector_);
       deviceListDataPointers_[listId] = device_data->data();
       maxListLength_ = std::max(maxListLength_, (int)list_length[listId]);
-      pos += list_length[listId];
+      pos += list_length[listId]*bytesPerVector_;
       listId++;
   }
 

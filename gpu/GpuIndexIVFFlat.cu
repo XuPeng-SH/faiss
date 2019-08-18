@@ -15,6 +15,7 @@
 #include "utils/CopyUtils.cuh"
 #include "utils/DeviceUtils.h"
 #include "utils/Float16.cuh"
+#include "../utils.h"
 
 #include <limits>
 
@@ -100,6 +101,19 @@ GpuIndexIVFFlat::copyFrom(const faiss::IndexIVFFlat* index) {
                        memorySpace_);
   InvertedLists *ivf = index->invlists;
 
+#if 0
+  std::vector<idx_t> ids;
+  std::vector<uint8_t> codes;
+  std::vector<size_t> list_length;
+
+  double t0 = getmillisecs();
+  ivf->get_all_ids(ids, list_length);
+  ivf->get_all_codes(codes);
+  std::cout << "Prepare Takes " << getmillisecs() - t0 << " ms" << std::endl;
+
+  index_->copyCodeVectorsFromCpu((float *)(codes.data()), ids.data(), list_length);
+
+#else
   for (size_t i = 0; i < ivf->nlist; ++i) {
     auto numVecs = ivf->list_size(i);
 
@@ -115,6 +129,7 @@ GpuIndexIVFFlat::copyFrom(const faiss::IndexIVFFlat* index) {
              i, (const float*)(ivf->get_codes(i)),
              ivf->get_ids(i), numVecs);
   }
+#endif
 }
 
 void

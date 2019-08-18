@@ -251,6 +251,8 @@ IVFBase::copyIndicesFromCpu_(const long* indices,
   auto numVecs = std::accumulate(list_length.begin(), list_length.end(), 0);
 
   auto stream = resources_->getDefaultStreamCurrentDevice();
+  int bytesPerRecord;
+
   if (indicesOptions_ == INDICES_32_BIT) {
     std::vector<int> indices32(numVecs);
     for (size_t i = 0; i < numVecs; ++i) {
@@ -259,11 +261,14 @@ IVFBase::copyIndicesFromCpu_(const long* indices,
       indices32[i] = (int) ind;
     }
 
+    bytesPerRecord = sizeof(int);
+
     deviceIndices_->append((unsigned char*) indices32.data(),
-                        numVecs * sizeof(int),
+                        numVecs * bytesPerRecord,
                         stream,
                         true /* exact reserved size */);
   } else if (indicesOptions_ == INDICES_64_BIT) {
+    bytesPerRecord = sizeof(long);
     deviceIndices_->append((unsigned char*) indices,
                         numVecs * sizeof(long),
                         stream,
@@ -283,11 +288,13 @@ IVFBase::copyIndicesFromCpu_(const long* indices,
 
   size_t listId = 0;
   size_t pos = 0;
+  size_t size = 0;
   for (auto& device_indice : deviceListIndices_) {
       auto data = deviceIndices_->data() + pos;
-      device_indice->reset(data, list_length[listId], list_length[listId]);
+      size = list_length[listId] * bytesPerRecord;
+      device_indice->reset(data, size, size);
       deviceListIndexPointers_[listId] = device_indice->data();
-      pos += list_length[listId];
+      pos += size;
       listId++;
   }
 }
