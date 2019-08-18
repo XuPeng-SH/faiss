@@ -36,9 +36,22 @@ class DeviceVector {
     clear();
   }
 
+  void reset(T* data, size_t num, size_t capacity, MemorySpace space = MemorySpace::Device) {
+      FAISS_ASSERT(data != nullptr);
+      FAISS_ASSERT(capacity >= num);
+      clear();
+      owner = true;
+      data_ = data;
+      num_ = num;
+      capacity_ = capacity_;
+  }
+
+
   // Clear all allocated memory; reset to zero size
   void clear() {
-    freeMemorySpace(space_, data_);
+    if (owner) {
+        freeMemorySpace(space_, data_);
+    }
     data_ = nullptr;
     num_ = 0;
     capacity_ = 0;
@@ -150,7 +163,7 @@ class DeviceVector {
 
  private:
   void realloc_(size_t newCapacity, cudaStream_t stream) {
-    FAISS_ASSERT(num_ <= newCapacity);
+    FAISS_ASSERT(num_ <= newCapacity && owner);
 
     T* newData = nullptr;
     allocMemorySpace(space_, &newData, newCapacity * sizeof(T));
@@ -170,6 +183,7 @@ class DeviceVector {
   size_t num_;
   size_t capacity_;
   MemorySpace space_;
+  bool owner = true;
 };
 
 } } // namespace
