@@ -29,6 +29,7 @@ class DeviceVector {
       : data_(nullptr),
         num_(0),
         capacity_(0),
+        owner(false),
         space_(space) {
   }
 
@@ -55,6 +56,7 @@ class DeviceVector {
     data_ = nullptr;
     num_ = 0;
     capacity_ = 0;
+    owner = false;
   }
 
   size_t size() const { return num_; }
