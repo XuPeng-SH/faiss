@@ -49,6 +49,78 @@ IVFFlat::~IVFFlat() {
 }
 
 void
+IVFFlat::copyCodeVectorsFromCpu(const float* vecs,
+        const long* indices,
+        const std::vector<size_t>& list_length) {
+  FAISS_ASSERT_FMT(list_length.size() == this->getNumLists(), "Expect list size %zu but %zu received!",
+          this->getNumLists(), list_length.size());
+  auto numVecs = std::accumulate(list_length.begin(), list_length.end(), 0);
+  if (numVecs == 0) {
+      return;
+  }
+
+  auto stream = resources_->getDefaultStreamCurrentDevice();
+
+  deviceListLengths_ = list_length;
+
+  size_t lengthInBytes = numVecs * bytesPerVector_;
+
+  // We only have int32 length representations on the GPU per each
+  // list; the length is in sizeof(char)
+  FAISS_ASSERT(deviceData_->size() + lengthInBytes <=
+         (size_t) std::numeric_limits<int>::max());
+
+  if (useFloat16_) {
+#ifdef FAISS_USE_FLOAT16
+    // We have to convert data to the half format.
+    // Make sure the source data is on our device first; it is not
+    // guaranteed before function entry to avoid unnecessary h2d copies
+    auto floatData =
+      toDevice<float, 1>(resources_,
+                         getCurrentDevice(),
+                         (float*) vecs,
+                         stream,
+                         {(int) numVecs * dim_});
+    auto halfData = toHalf<1>(resources_, stream, floatData);
+
+    deviceData_->append((unsigned char*) halfData.data(),
+                     lengthInBytes,
+                     stream,
+                     true /* exact reserved size */);
+#else
+    // we are not compiling with float16 support
+    FAISS_ASSERT(false);
+#endif
+  } else {
+    deviceData_->append((unsigned char*) vecs,
+                     lengthInBytes,
+                     stream,
+                     true /* exact reserved size */);
+  }
+
+  copyIndicesFromCpu_(indices, list_length);
+
+  maxListLength_ = 0;
+
+  size_t listId = 0;
+  size_t pos = 0;
+  for (auto& device_data : deviceListData_) {
+      auto data = deviceData_->data() + pos;
+      device_data->reset(data, list_length[listId], list_length[listId]);
+      deviceListDataPointers_[listId] = device_data->data();
+      maxListLength_ = std::max(maxListLength_, (int)list_length[listId]);
+      pos += list_length[listId];
+      listId++;
+  }
+
+  // device_vector add is potentially happening on a different stream
+  // than our default stream
+  if (stream != 0) {
+    streamWait({stream}, {0});
+  }
+}
+
+void
 IVFFlat::addCodeVectorsFromCpu(int listId,
                                const float* vecs,
                                const long* indices,

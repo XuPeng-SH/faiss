@@ -77,6 +77,9 @@ class IVFBase {
                           const long* indices,
                           size_t numVecs);
 
+  void copyIndicesFromCpu_(const long* indices,
+                           const std::vector<size_t>& list_length);
+
   void addTrainedDataFromCpu_(const uint8_t* trained, size_t numData);
 
  protected:

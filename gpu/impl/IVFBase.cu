@@ -243,6 +243,56 @@ IVFBase::getListIndices(int listId) const {
 }
 
 void
+IVFBase::copyIndicesFromCpu_(const long* indices,
+        const std::vector<size_t>& list_length) {
+
+  FAISS_ASSERT_FMT(list_length.size() == this->getNumLists(), "Expect list size %zu but %zu received!",
+          this->getNumLists(), list_length.size());
+  auto numVecs = std::accumulate(list_length.begin(), list_length.end(), 0);
+
+  auto stream = resources_->getDefaultStreamCurrentDevice();
+  if (indicesOptions_ == INDICES_32_BIT) {
+    std::vector<int> indices32(numVecs);
+    for (size_t i = 0; i < numVecs; ++i) {
+      auto ind = indices[i];
+      FAISS_ASSERT(ind <= (long) std::numeric_limits<int>::max());
+      indices32[i] = (int) ind;
+    }
+
+    deviceIndices_->append((unsigned char*) indices32.data(),
+                        numVecs * sizeof(int),
+                        stream,
+                        true /* exact reserved size */);
+  } else if (indicesOptions_ == INDICES_64_BIT) {
+    deviceIndices_->append((unsigned char*) indices,
+                        numVecs * sizeof(long),
+                        stream,
+                        true /* exact reserved size */);
+  } else if (indicesOptions_ == INDICES_CPU) {
+    size_t listId = 0;
+    auto curr_indices = indices;
+    for (auto& userIndices : listOffsetToUserIndex_) {
+        userIndices.insert(userIndices.begin(), curr_indices, curr_indices + list_length[listId]);
+        curr_indices += list_length[listId];
+        listId++;
+    }
+  } else {
+    // indices are not stored
+    FAISS_ASSERT(indicesOptions_ == INDICES_IVF);
+  }
+
+  size_t listId = 0;
+  size_t pos = 0;
+  for (auto& device_indice : deviceListIndices_) {
+      auto data = deviceIndices_->data() + pos;
+      device_indice->reset(data, list_length[listId], list_length[listId]);
+      deviceListIndexPointers_[listId] = device_indice->data();
+      pos += list_length[listId];
+      listId++;
+  }
+}
+
+void
 IVFBase::addIndicesFromCpu_(int listId,
                             const long* indices,
                             size_t numVecs) {

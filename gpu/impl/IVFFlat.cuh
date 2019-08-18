@@ -32,6 +32,10 @@ class IVFFlat : public IVFBase {
                              const long* indices,
                              size_t numVecs);
 
+  void copyCodeVectorsFromCpu(const float* vecs,
+                              const long* indices,
+                              const std::vector<size_t>& list_length);
+
   /// Adds the given vectors to this index.
   /// The input data must be on our current device.
   /// Returns the number of vectors successfully added. Vectors may
