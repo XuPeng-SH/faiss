@@ -123,6 +123,9 @@ class IVFBase {
   std::vector<std::unique_ptr<DeviceVector<unsigned char>>> deviceListData_;
   std::vector<std::unique_ptr<DeviceVector<unsigned char>>> deviceListIndices_;
 
+  std::unique_ptr<DeviceVector<unsigned char>> deviceData_;
+  std::unique_ptr<DeviceVector<unsigned char>> deviceIndices_;
+
   std::unique_ptr<DeviceVector<unsigned char>> deviceTrained_;
 
   /// If we are storing indices on the CPU (indicesOptions_ is

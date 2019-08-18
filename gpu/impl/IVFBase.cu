@@ -92,6 +92,8 @@ IVFBase::reset() {
   deviceListIndexPointers_.resize(numLists_, nullptr);
   deviceListLengths_.resize(numLists_, 0);
   maxListLength_ = 0;
+  deviceData_.reset(new DeviceVector<unsigned char>(space_));
+  deviceIndices_.reset(new DeviceVector<unsigned char>(space_));
   deviceTrained_.reset(new DeviceVector<unsigned char>(space_));
 }
 
