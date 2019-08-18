@@ -29,7 +29,7 @@ class DeviceVector {
       : data_(nullptr),
         num_(0),
         capacity_(0),
-        owner(false),
+        owner(true),
         space_(space) {
   }
 
@@ -41,7 +41,7 @@ class DeviceVector {
       FAISS_ASSERT(data != nullptr);
       FAISS_ASSERT(capacity >= num);
       clear();
-      owner = true;
+      owner = false;
       data_ = data;
       num_ = num;
       capacity_ = capacity_;
@@ -56,7 +56,7 @@ class DeviceVector {
     data_ = nullptr;
     num_ = 0;
     capacity_ = 0;
-    owner = false;
+    owner = true;
   }
 
   size_t size() const { return num_; }
@@ -165,7 +165,8 @@ class DeviceVector {
 
  private:
   void realloc_(size_t newCapacity, cudaStream_t stream) {
-    FAISS_ASSERT(num_ <= newCapacity && owner);
+    FAISS_ASSERT(num_ <= newCapacity);
+    FAISS_ASSERT_MSG(owner, "Cannot realloc due to no ownership of mem");
 
     T* newData = nullptr;
     allocMemorySpace(space_, &newData, newCapacity * sizeof(T));
