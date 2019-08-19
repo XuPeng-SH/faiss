@@ -210,6 +210,8 @@ struct ReadOnlyArrayInvertedLists: InvertedLists {
 
     ReadOnlyArrayInvertedLists(size_t nlist,
             size_t code_size, const std::vector<size_t>& list_length);
+
+    ReadOnlyArrayInvertedLists(const ArrayInvertedLists& other);
     virtual ~ReadOnlyArrayInvertedLists();
 
     size_t list_size(size_t list_no) const override;

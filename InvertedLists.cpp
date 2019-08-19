@@ -220,6 +220,23 @@ ReadOnlyArrayInvertedLists::ReadOnlyArrayInvertedLists(size_t nlist,
     }
 }
 
+ReadOnlyArrayInvertedLists::ReadOnlyArrayInvertedLists(const ArrayInvertedLists& other)
+    : InvertedLists (other.nlist, other.code_size) {
+    readonly_length.resize(nlist);
+    size_t offset = 0;
+    for (auto& list_ids : other.ids) {
+        readonly_length.emplace_back(list_ids.size());
+        readonly_offset.emplace_back(offset);
+        offset += list_ids.size();
+        readonly_ids.insert(readonly_ids.end(), list_ids.begin(), list_ids.end());
+    }
+
+    for(auto& list_codes : other.codes) {
+        readonly_codes.insert(readonly_codes.end(), list_codes.begin(), list_codes.end());
+    }
+    valid = true;
+}
+
 ReadOnlyArrayInvertedLists::~ReadOnlyArrayInvertedLists() {
 }
 
