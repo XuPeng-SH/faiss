@@ -325,6 +325,16 @@ void write_InvertedLists (const InvertedLists *ils, IOWriter *f) {
                 WRITEANDCHECK (ails->ids[i].data(), n);
             }
         }
+    } else if (const auto & oa =
+               dynamic_cast<const ReadOnlyArrayInvertedLists *>(ils)) {
+        uint32_t h = fourcc("iloa");
+        WRITE1 (h);
+        WRITE1 (oa->nlist);
+        WRITE1 (oa->code_size);
+        WRITEVECTOR(oa->readonly_length);
+        size_t n = oa->readonly_ids.size();
+        WRITEANDCHECK(oa->readonly_ids.data(), n);
+        WRITEANDCHECK(oa->readonly_codes.data(), n * oa->code_size);
     } else if (const auto & od =
                dynamic_cast<const OnDiskInvertedLists *>(ils)) {
         uint32_t h = fourcc ("ilod");
