@@ -39,14 +39,6 @@ InvertedLists::idx_t InvertedLists::get_single_id (
     return get_ids(list_no)[offset];
 }
 
-void InvertedLists::get_all_ids(std::vector<idx_t>& ids, std::vector<size_t>& list_length) {
-
-}
-
-void InvertedLists::get_all_codes(std::vector<uint8_t>& codes) {
-
-}
-
 void InvertedLists::release_codes (size_t, const uint8_t *) const
 {}
 
@@ -182,22 +174,6 @@ const InvertedLists::idx_t * ArrayInvertedLists::get_ids (size_t list_no) const
     return ids[list_no].data();
 }
 
-void ArrayInvertedLists::get_all_ids(std::vector<idx_t>& list_ids, std::vector<size_t>& list_length) {
-    list_ids.clear();
-    list_length.clear();
-    for(auto& each_ids : ids) {
-        list_ids.insert(list_ids.end(), each_ids.begin(), each_ids.end());
-        list_length.emplace_back(each_ids.size());
-    }
-}
-
-void ArrayInvertedLists::get_all_codes(std::vector<uint8_t>& list_codes) {
-    list_codes.clear();
-    for(auto& each_codes : codes) {
-        list_codes.insert(list_codes.end(), each_codes.begin(), each_codes.end());
-    }
-}
-
 void ArrayInvertedLists::resize (size_t list_no, size_t new_size)
 {
     ids[list_no].resize (new_size);
@@ -217,6 +193,92 @@ void ArrayInvertedLists::update_entries (
 
 ArrayInvertedLists::~ArrayInvertedLists ()
 {}
+
+
+/*****************************************************************
+ * ReadOnlyArrayInvertedLists implementations
+ *****************************************************************/
+
+ReadOnlyArrayInvertedLists::ReadOnlyArrayInvertedLists(size_t nlist,
+        size_t code_size, const std::vector<size_t>& list_length)
+    : InvertedLists (nlist, code_size),
+      readonly_length(list_length) {
+    valid = readonly_length.size() == nlist;
+    if (!valid) {
+        FAISS_THROW_MSG ("Invalid list_length");
+        return;
+    }
+    auto total_size = std::accumulate(readonly_length.begin(), readonly_length.end(), 0);
+    readonly_codes.reserve(total_size * code_size);
+    readonly_ids.reserve(total_size);
+    readonly_offset.reserve(nlist);
+
+    size_t offset = 0;
+    for (auto i=0; i<readonly_length.size(); ++i) {
+        readonly_offset.emplace_back(offset);
+        offset += readonly_length[i];
+    }
+}
+
+ReadOnlyArrayInvertedLists::~ReadOnlyArrayInvertedLists() {
+}
+
+bool
+ReadOnlyArrayInvertedLists::is_valid() {
+    return valid;
+}
+
+size_t ReadOnlyArrayInvertedLists::add_entries (
+           size_t , size_t ,
+           const idx_t* , const uint8_t *)
+{
+    FAISS_THROW_MSG ("not implemented");
+}
+
+void ReadOnlyArrayInvertedLists::update_entries (size_t, size_t , size_t ,
+                         const idx_t *, const uint8_t *)
+{
+    FAISS_THROW_MSG ("not implemented");
+}
+
+void ReadOnlyArrayInvertedLists::resize (size_t , size_t )
+{
+    FAISS_THROW_MSG ("not implemented");
+}
+
+size_t ReadOnlyArrayInvertedLists::list_size(size_t list_no) const
+{
+    FAISS_ASSERT(list_no < nlist && valid);
+    return readonly_length[list_no];
+}
+
+const uint8_t * ReadOnlyArrayInvertedLists::get_codes (size_t list_no) const
+{
+    FAISS_ASSERT(list_no < nlist && valid);
+    return readonly_codes.data() + readonly_offset[list_no] * code_size;
+}
+
+const InvertedLists::idx_t* ReadOnlyArrayInvertedLists::get_ids (size_t list_no) const
+{
+    FAISS_ASSERT(list_no < nlist && valid);
+    return readonly_ids.data() + readonly_offset[list_no];
+}
+
+const InvertedLists::idx_t* ReadOnlyArrayInvertedLists::get_all_ids() const {
+    FAISS_ASSERT(valid);
+    return readonly_ids.data();
+}
+
+const uint8_t* ReadOnlyArrayInvertedLists::get_all_codes() const {
+    FAISS_ASSERT(valid);
+    return readonly_codes.data();
+}
+
+const std::vector<size_t>& ReadOnlyArrayInvertedLists::get_list_length() const {
+    FAISS_ASSERT(valid);
+    return readonly_length;
+}
+
 
 /*****************************************************************
  * Meta-inverted list implementations

@@ -56,9 +56,6 @@ struct InvertedLists {
      */
     virtual const idx_t * get_ids (size_t list_no) const = 0;
 
-    virtual void get_all_ids(std::vector<idx_t>& ids, std::vector<size_t>& list_length);
-    virtual void get_all_codes(std::vector<uint8_t>& codes);
-
     /// release codes returned by get_codes (default implementation is nop
     virtual void release_codes (size_t list_no, const uint8_t *codes) const;
 
@@ -192,9 +189,6 @@ struct ArrayInvertedLists: InvertedLists {
     const uint8_t * get_codes (size_t list_no) const override;
     const idx_t * get_ids (size_t list_no) const override;
 
-    void get_all_ids(std::vector<idx_t>& ids, std::vector<size_t>& list_length) override;
-    void get_all_codes(std::vector<uint8_t>& codes) override;
-
     size_t add_entries (
            size_t list_no, size_t n_entry,
            const idx_t* ids, const uint8_t *code) override;
@@ -205,6 +199,37 @@ struct ArrayInvertedLists: InvertedLists {
     void resize (size_t list_no, size_t new_size) override;
 
     virtual ~ArrayInvertedLists ();
+};
+
+struct ReadOnlyArrayInvertedLists: InvertedLists {
+    std::vector <uint8_t> readonly_codes;
+    std::vector <idx_t> readonly_ids;
+    std::vector <size_t> readonly_length;
+    std::vector <size_t> readonly_offset;
+    bool valid;
+
+    ReadOnlyArrayInvertedLists(size_t nlist,
+            size_t code_size, const std::vector<size_t>& list_length);
+    virtual ~ReadOnlyArrayInvertedLists();
+
+    size_t list_size(size_t list_no) const override;
+    const uint8_t * get_codes (size_t list_no) const override;
+    const idx_t * get_ids (size_t list_no) const override;
+
+    const uint8_t * get_all_codes() const;
+    const idx_t * get_all_ids() const;
+    const std::vector<size_t>& get_list_length() const;
+
+    size_t add_entries (
+           size_t list_no, size_t n_entry,
+           const idx_t* ids, const uint8_t *code) override;
+
+    void update_entries (size_t list_no, size_t offset, size_t n_entry,
+                         const idx_t *ids, const uint8_t *code) override;
+
+    void resize (size_t list_no, size_t new_size) override;
+
+    bool is_valid();
 };
 
 /*****************************************************************
