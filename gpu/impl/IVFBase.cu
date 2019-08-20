@@ -14,9 +14,11 @@
 #include "../utils/DeviceDefs.cuh"
 #include "../utils/DeviceUtils.h"
 #include "../utils/HostTensor.cuh"
+#include "../../utils.h"
 #include <limits>
 #include <thrust/host_vector.h>
 #include <unordered_map>
+#include <chrono>
 
 namespace faiss { namespace gpu {
 
@@ -263,14 +265,16 @@ IVFBase::copyIndicesFromCpu_(const long* indices,
 
     bytesPerRecord = sizeof(int);
 
+    deviceIndices_->reserve(numVecs * bytesPerRecord, stream);
     deviceIndices_->append((unsigned char*) indices32.data(),
                         numVecs * bytesPerRecord,
                         stream,
                         true /* exact reserved size */);
   } else if (indicesOptions_ == INDICES_64_BIT) {
     bytesPerRecord = sizeof(long);
+    deviceIndices_->reserve(numVecs * bytesPerRecord, stream);
     deviceIndices_->append((unsigned char*) indices,
-                        numVecs * sizeof(long),
+                        numVecs * bytesPerRecord,
                         stream,
                         true /* exact reserved size */);
   } else if (indicesOptions_ == INDICES_CPU) {
@@ -289,14 +293,19 @@ IVFBase::copyIndicesFromCpu_(const long* indices,
   size_t listId = 0;
   size_t pos = 0;
   size_t size = 0;
+  thrust::host_vector<void*> hostPointers;
+  hostPointers.resize(deviceListData_.size(), nullptr);
+
   for (auto& device_indice : deviceListIndices_) {
       auto data = deviceIndices_->data() + pos;
       size = list_length[listId] * bytesPerRecord;
       device_indice->reset(data, size, size);
-      deviceListIndexPointers_[listId] = device_indice->data();
+      hostPointers[listId] = device_indice->data();
       pos += size;
       listId++;
   }
+
+  deviceListIndexPointers_ = hostPointers;
 }
 
 void

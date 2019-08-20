@@ -11,9 +11,11 @@
 
 #include "../utils/HostTensor.cuh"
 #include "../utils/Transpose.cuh"
+#include "../../utils.h"
 #include <limits>
 #include <thrust/host_vector.h>
 #include <unordered_map>
+#include <chrono>
 
 namespace faiss { namespace gpu {
 
@@ -55,6 +57,7 @@ IVFSQ::copyCodeVectorsFromCpu(const VecT* vecs, const long* indices,
     FAISS_ASSERT(deviceData_->size() + lengthInBytes <=
          (size_t) std::numeric_limits<int>::max());
 
+    deviceData_->reserve(lengthInBytes, stream);
     deviceData_->append((unsigned char*) vecs,
             lengthInBytes,
             stream,
@@ -66,14 +69,28 @@ IVFSQ::copyCodeVectorsFromCpu(const VecT* vecs, const long* indices,
 
     size_t listId = 0;
     size_t pos = 0;
+    /* INIT_TIMER; */
+    /* std::vector<size_t> counts = {0,0}; */
+    thrust::host_vector<void*> hostPointers;
+    hostPointers.resize(deviceListData_.size(), nullptr);
     for (auto& device_data : deviceListData_) {
         auto data = deviceData_->data() + pos;
         device_data->reset(data, list_length[listId]*bytesPerVector_, list_length[listId]*bytesPerVector_);
-        deviceListDataPointers_[listId] = device_data->data();
+        /* START_TIMER; */
+        hostPointers[listId] = device_data->data();
+        /* counts[0] += GET_TIMER; */
         maxListLength_ = std::max(maxListLength_, (int)list_length[listId]);
         pos += list_length[listId]*bytesPerVector_;
         listId++;
     }
+
+    /* START_TIMER; */
+    deviceListDataPointers_ = hostPointers;
+    /* counts[1] += GET_TIMER; */
+
+    /* for (auto& t : counts) { */
+    /*     std::cout << "ts: " << t << std::endl; */
+    /* } */
 
     // device_vector add is potentially happening on a different stream
     // than our default stream
