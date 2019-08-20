@@ -234,7 +234,7 @@ ReadOnlyArrayInvertedLists::ReadOnlyArrayInvertedLists(size_t nlist,
 
 ReadOnlyArrayInvertedLists::ReadOnlyArrayInvertedLists(const ArrayInvertedLists& other)
     : InvertedLists (other.nlist, other.code_size) {
-    readonly_length.resize(nlist);
+    readonly_length.reserve(nlist);
     size_t offset = 0;
     for (auto& list_ids : other.ids) {
         readonly_length.emplace_back(list_ids.size());
