@@ -37,6 +37,23 @@ double getmillisecs ();
 /// get current RSS usage in kB
 size_t get_mem_usage_kb ();
 
+#define INIT_TIMER auto start_time = std::chrono::high_resolution_clock::now();
+                   /* auto MSG_FUNC = [&](const string& msg) -> string {return msg;}; */
+#define START_TIMER  start_time = std::chrono::high_resolution_clock::now();
+#define STOP_TIMER_WITH_FUNC(name)  cout << "RUNTIME of " << MSG_FUNC(name) << ": " << \
+    std::chrono::duration_cast<std::chrono::microseconds>( \
+            std::chrono::high_resolution_clock::now()-start_time \
+    ).count() << " us " << endl;
+#define STOP_TIMER(name)  cout << "RUNTIME of " << name << ": " << \
+    std::chrono::duration_cast<std::chrono::microseconds>( \
+            std::chrono::high_resolution_clock::now()-start_time \
+    ).count() << " us " << endl;
+
+#define GET_TIMER  \
+    std::chrono::duration_cast<std::chrono::microseconds>( \
+            std::chrono::high_resolution_clock::now()-start_time \
+    ).count()
+
 
 /**************************************************
  * Random data generation functions
