@@ -95,6 +95,10 @@ struct InvertedLists {
 
     virtual void reset ();
 
+    virtual InvertedLists* to_readonly();
+
+    virtual bool is_readonly() const;
+
     /// move all entries from oivf (empty on output)
     void merge_from (InvertedLists *oivf, size_t add_id);
 
@@ -198,6 +202,8 @@ struct ArrayInvertedLists: InvertedLists {
 
     void resize (size_t list_no, size_t new_size) override;
 
+    InvertedLists* to_readonly() override;
+
     virtual ~ArrayInvertedLists ();
 };
 
@@ -230,6 +236,8 @@ struct ReadOnlyArrayInvertedLists: InvertedLists {
                          const idx_t *ids, const uint8_t *code) override;
 
     void resize (size_t list_no, size_t new_size) override;
+
+    bool is_readonly() const override;
 
     bool is_valid();
 };

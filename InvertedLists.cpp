@@ -67,6 +67,14 @@ void InvertedLists::update_entry (size_t list_no, size_t offset,
     update_entries (list_no, offset, 1, &id, code);
 }
 
+InvertedLists* InvertedLists::to_readonly() {
+    return nullptr;
+}
+
+bool InvertedLists::is_readonly() const {
+    return false;
+}
+
 void InvertedLists::reset () {
     for (size_t i = 0; i < nlist; i++) {
         resize (i, 0);
@@ -190,6 +198,10 @@ void ArrayInvertedLists::update_entries (
     memcpy (&codes[list_no][offset * code_size], codes_in, code_size * n_entry);
 }
 
+InvertedLists* ArrayInvertedLists::to_readonly() {
+    ReadOnlyArrayInvertedLists* readonly = new ReadOnlyArrayInvertedLists(*this);
+    return readonly;
+}
 
 ArrayInvertedLists::~ArrayInvertedLists ()
 {}
@@ -296,6 +308,10 @@ const std::vector<size_t>& ReadOnlyArrayInvertedLists::get_list_length() const {
     return readonly_length;
 }
 
+bool ReadOnlyArrayInvertedLists::is_readonly() const {
+    FAISS_ASSERT(valid);
+    return true;
+}
 
 /*****************************************************************
  * Meta-inverted list implementations
