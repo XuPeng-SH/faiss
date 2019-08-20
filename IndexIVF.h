@@ -245,6 +245,9 @@ struct IndexIVF: Index, Level1Quantizer {
     virtual void copy_subset_to (IndexIVF & other, int subset_type,
                                  idx_t a1, idx_t a2) const;
 
+    virtual void to_readonly();
+    virtual bool is_readonly() const;
+
     ~IndexIVF() override;
 
     size_t get_list_size (size_t list_no) const

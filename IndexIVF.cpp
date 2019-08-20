@@ -199,6 +199,16 @@ void IndexIVF::add_with_ids (idx_t n, const float * x, const idx_t *xids)
     ntotal += n;
 }
 
+void IndexIVF::to_readonly() {
+    if (is_readonly()) return;
+    auto readonly_lists = this->invlists->to_readonly();
+    if (!readonly_lists) return;
+    this->replace_invlists(readonly_lists, true);
+}
+
+bool IndexIVF::is_readonly() const {
+    return this->invlists->is_readonly();
+}
 
 void IndexIVF::make_direct_map (bool new_maintain_direct_map)
 {
