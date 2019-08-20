@@ -86,19 +86,24 @@ GpuIndexIVFSQ::copyFrom(const CpuIndexT* index) {
 
   InvertedLists *ivf_lists = index->invlists;
 
-  for (size_t i = 0; i < ivf_lists->nlist; ++i) {
-    auto numVecs = ivf_lists->list_size(i);
+  if (ReadOnlyArrayInvertedLists* rol = dynamic_cast<ReadOnlyArrayInvertedLists*>(ivf_lists)) {
+      index_->copyCodeVectorsFromCpu((rol->readonly_codes.data()),
+              rol->readonly_ids.data(), rol->readonly_length);
+  } else {
+      for (size_t i = 0; i < ivf_lists->nlist; ++i) {
+          auto numVecs = ivf_lists->list_size(i);
 
-    FAISS_THROW_IF_NOT_FMT(numVecs <=
-                       (size_t) std::numeric_limits<int>::max(),
-                       "GPU inverted list can only support "
-                       "%zu entries; %zu found",
-                       (size_t) std::numeric_limits<int>::max(),
-                       numVecs);
+          FAISS_THROW_IF_NOT_FMT(numVecs <=
+                  (size_t) std::numeric_limits<int>::max(),
+                  "GPU inverted list can only support "
+                  "%zu entries; %zu found",
+                  (size_t) std::numeric_limits<int>::max(),
+                  numVecs);
 
-    index_->addCodeVectorsFromCpu(
-             i, ivf_lists->get_codes(i),
-             ivf_lists->get_ids(i), numVecs);
+          index_->addCodeVectorsFromCpu(
+                  i, ivf_lists->get_codes(i),
+                  ivf_lists->get_ids(i), numVecs);
+      }
   }
 }
 
@@ -119,7 +124,7 @@ GpuIndexIVFSQ::dump() {
         auto indices = index_->getListIndices(i);
         auto data_array = index_->getListVectors(i);
         std::cout << "GpuData[" << i << "] with size: " << data_array.size() << std::endl;
-        
+
         // for(auto data: data_array) {
         //   std::cout << (unsigned)data << " ";
         // }

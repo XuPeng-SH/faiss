@@ -14,7 +14,7 @@
 #include <limits>
 #include <thrust/host_vector.h>
 #include <unordered_map>
- 
+
 namespace faiss { namespace gpu {
 
 IVFSQ::IVFSQ(GpuResources* resources,
@@ -33,8 +33,53 @@ IVFSQ::IVFSQ(GpuResources* resources,
     l2Distance_(l2Distance),
     gpu_scalar_quantizer_(vdiff, vmin) {
 }
- 
+
 IVFSQ::~IVFSQ() {
+}
+
+void
+IVFSQ::copyCodeVectorsFromCpu(const VecT* vecs, const long* indices,
+        const std::vector<size_t>& list_length) {
+    FAISS_ASSERT_FMT(list_length.size() == this->getNumLists(), "Expect list size %zu but %zu received!",
+          this->getNumLists(), list_length.size());
+
+    auto numVecs = std::accumulate(list_length.begin(), list_length.end(), 0);
+    if (numVecs == 0) {
+        return;
+    }
+
+    auto stream = resources_->getDefaultStreamCurrentDevice();
+    deviceListLengths_ = list_length;
+    size_t lengthInBytes = numVecs * bytesPerVector_;
+
+    FAISS_ASSERT(deviceData_->size() + lengthInBytes <=
+         (size_t) std::numeric_limits<int>::max());
+
+    deviceData_->append((unsigned char*) vecs,
+            lengthInBytes,
+            stream,
+            true);
+
+    copyIndicesFromCpu_(indices, list_length);
+
+    maxListLength_ = 0;
+
+    size_t listId = 0;
+    size_t pos = 0;
+    for (auto& device_data : deviceListData_) {
+        auto data = deviceData_->data() + pos;
+        device_data->reset(data, list_length[listId]*bytesPerVector_, list_length[listId]*bytesPerVector_);
+        deviceListDataPointers_[listId] = device_data->data();
+        maxListLength_ = std::max(maxListLength_, (int)list_length[listId]);
+        pos += list_length[listId]*bytesPerVector_;
+        listId++;
+    }
+
+    // device_vector add is potentially happening on a different stream
+    // than our default stream
+    if (stream != 0) {
+        streamWait({stream}, {0});
+    }
 }
 
 void
@@ -107,23 +152,23 @@ IVFSQ::getListVectors(int listId) const {
                 Tensor<long, 2, true>& outIndices) {
    auto& mem = resources_->getMemoryManagerCurrentDevice();
    auto stream = resources_->getDefaultStreamCurrentDevice();
- 
+
    // These are caught at a higher level
    FAISS_ASSERT(nprobe <= GPU_MAX_SELECTION_K);
    FAISS_ASSERT(k <= GPU_MAX_SELECTION_K);
    nprobe = std::min(nprobe, quantizer_->getSize());
- 
+
    FAISS_ASSERT(queries.getSize(1) == dim_);
- 
+
    FAISS_ASSERT(outDistances.getSize(0) == queries.getSize(0));
    FAISS_ASSERT(outIndices.getSize(0) == queries.getSize(0));
- 
+
    // Reserve space for the quantized information
    DeviceTensor<float, 2, true>
      coarseDistances(mem, {queries.getSize(0), nprobe}, stream);
    DeviceTensor<int, 2, true>
      coarseIndices(mem, {queries.getSize(0), nprobe}, stream);
- 
+
    // Find the `nprobe` closest lists; we can use int indices both
    // internally and externally
    quantizer_->query(queries,
@@ -131,7 +176,7 @@ IVFSQ::getListVectors(int listId) const {
                      coarseDistances,
                      coarseIndices,
                      false);
- 
+
    runIVFScalarQuantizerScan(queries,
                   coarseIndices,
                   deviceListDataPointers_,
@@ -145,25 +190,24 @@ IVFSQ::getListVectors(int listId) const {
                   outIndices,
                   resources_,
                   gpu_scalar_quantizer_);
- 
+
    // If the GPU isn't storing indices (they are on the CPU side), we
    // need to perform the re-mapping here
    // FIXME: we might ultimately be calling this function with inputs
    // from the CPU, these are unnecessary copies
    if (indicesOptions_ == INDICES_CPU) {
      HostTensor<long, 2, true> hostOutIndices(outIndices, stream);
- 
+
      ivfOffsetToUserIndex(hostOutIndices.data(),
                           numLists_,
                           hostOutIndices.getSize(0),
                           hostOutIndices.getSize(1),
                           listOffsetToUserIndex_);
- 
+
      // Copy back to GPU, since the input to this function is on the
      // GPU
      outIndices.copyFrom(hostOutIndices, stream);
    }
  }
- 
+
  } } // namespace
- 
