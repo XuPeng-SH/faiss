@@ -333,6 +333,7 @@ void write_InvertedLists (const InvertedLists *ils, IOWriter *f) {
         WRITE1 (oa->code_size);
         WRITEVECTOR(oa->readonly_length);
         size_t n = oa->readonly_ids.size();
+        WRITE1(n);
         WRITEANDCHECK(oa->readonly_ids.data(), n);
         WRITEANDCHECK(oa->readonly_codes.data(), n * oa->code_size);
     } else if (const auto & od =
@@ -667,6 +668,19 @@ InvertedLists *read_InvertedLists (IOReader *f, int io_flags) {
         fprintf(stderr, "read_InvertedLists:"
                 " WARN! inverted lists not stored with IVF object\n");
         return nullptr;
+    } else if (h == fourcc ("iloa") && !(io_flags & IO_FLAG_MMAP)) {
+        size_t nlist;
+        size_t code_size;
+        std::vector<size_t> list_length;
+        READ1(nlist);
+        READ1(code_size);
+        READVECTOR(list_length);
+        auto ails = new ReadOnlyArrayInvertedLists(nlist, code_size, list_length);
+        size_t n;
+        READ1(n);
+        READANDCHECK(ails->readonly_ids.data(), n);
+        READANDCHECK(ails->readonly_codes.data(), n * code_size);
+        return ails;
     } else if (h == fourcc ("ilar") && !(io_flags & IO_FLAG_MMAP)) {
         auto ails = new ArrayInvertedLists (0, 0);
         READ1 (ails->nlist);
