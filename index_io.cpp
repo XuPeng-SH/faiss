@@ -678,6 +678,8 @@ InvertedLists *read_InvertedLists (IOReader *f, int io_flags) {
         auto ails = new ReadOnlyArrayInvertedLists(nlist, code_size, list_length);
         size_t n;
         READ1(n);
+        ails->readonly_ids.resize(n);
+        ails->readonly_codes.resize(n*code_size);
         READANDCHECK(ails->readonly_ids.data(), n);
         READANDCHECK(ails->readonly_codes.data(), n * code_size);
         return ails;
