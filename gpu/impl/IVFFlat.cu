@@ -104,14 +104,19 @@ IVFFlat::copyCodeVectorsFromCpu(const float* vecs,
 
   size_t listId = 0;
   size_t pos = 0;
+  thrust::host_vector<void*> hostPointers;
+  hostPointers.resize(deviceListData_.size(), nullptr);
+
   for (auto& device_data : deviceListData_) {
       auto data = deviceData_->data() + pos;
       device_data->reset(data, list_length[listId]*bytesPerVector_, list_length[listId]*bytesPerVector_);
-      deviceListDataPointers_[listId] = device_data->data();
+      hostPointers[listId] = device_data->data();
       maxListLength_ = std::max(maxListLength_, (int)list_length[listId]);
       pos += list_length[listId]*bytesPerVector_;
       listId++;
   }
+
+  deviceListDataPointers_ = hostPointers;
 
   // device_vector add is potentially happening on a different stream
   // than our default stream
