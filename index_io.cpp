@@ -1229,6 +1229,10 @@ Index *Cloner::clone_Index (const Index *index)
                    (ivf->invlists)) {
             res->invlists = new ArrayInvertedLists(*ails);
             res->own_invlists = true;
+        } else if (auto *ails = dynamic_cast<const ReadOnlyArrayInvertedLists*>
+                   (ivf->invlists)) {
+            res->invlists = new ReadOnlyArrayInvertedLists(*ails);
+            res->own_invlists = true;
         } else {
             FAISS_THROW_MSG( "clone not supported for this type of inverted lists");
         }
