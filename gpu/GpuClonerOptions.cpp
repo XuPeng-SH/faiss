@@ -17,11 +17,8 @@ GpuClonerOptions::GpuClonerOptions()
       reserveVecs(0),
       storeTransposed(false),
       storeInCpu(false),
+      allInGpu(false),
       verbose(false) {
-}
-
-CpuToGpuClonerOptions::CpuToGpuClonerOptions()
-    : readonly(false) {
 }
 
 GpuMultipleClonerOptions::GpuMultipleClonerOptions()

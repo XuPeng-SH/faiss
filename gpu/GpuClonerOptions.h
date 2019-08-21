@@ -37,13 +37,11 @@ struct GpuClonerOptions {
 
   bool storeInCpu;
 
+  /// For IndexIVFScalarQuantizer
+  bool allInGpu;
+
   /// Set verbose options on the index
   bool verbose;
-};
-
-struct CpuToGpuClonerOptions : public GpuClonerOptions {
-    CpuToGpuClonerOptions();
-    bool readonly;
 };
 
 struct GpuMultipleClonerOptions : public GpuClonerOptions {

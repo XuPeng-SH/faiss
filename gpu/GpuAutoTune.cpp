@@ -99,7 +99,6 @@ faiss::Index * index_gpu_to_cpu(const faiss::Index *gpu_index)
 }
 
 
-
 struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
     GpuResources *resources;
     int device;
@@ -110,6 +109,7 @@ struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
     {}
 
     Index *clone_Index(const Index *index) override {
+        auto ivf_sq = dynamic_cast<const faiss::IndexIVFScalarQuantizer*>(index);
         if(auto ifl = dynamic_cast<const IndexFlat *>(index)) {
           GpuIndexFlatConfig config;
           config.device = device;
@@ -118,27 +118,22 @@ struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
           config.storeInCpu = storeInCpu;
 
           return new GpuIndexFlat(resources, ifl, config);
-#if 0
-        } else if(auto ifl = dynamic_cast<const IndexIVFScalarQuantizer*>(index)) {
-            GpuIndexIVFScalarQuantizerConfig config;
-            config.device = device;
-            config.indicesOptions = indicesOptions;
-            config.flatConfig.useFloat16 = useFloat16CoarseQuantizer;
-            config.flatConfig.storeTransposed = storeTransposed;
-            config.useFloat16IVFStorage = useFloat16;
-            GpuIndexIVFScalarQuantizer* res =
-                new GpuIndexIVFScalarQuantizer(resources,
-                                            ifl->d,
-                                            ifl->nlist,
-                                            ifl->metric_type,
-                                            config);
-            if(reserveVecs > 0 && ifl->ntotal == 0) {
-                res->reserveMemory(reserveVecs);
-            }
+        } else if(allInGpu && ivf_sq) {
+          GpuIndexIVFSQConfig config;
+          config.device = device;
+          config.indicesOptions = indicesOptions;
+          config.flatConfig.useFloat16 = useFloat16CoarseQuantizer;
+          config.flatConfig.storeTransposed = storeTransposed;
 
-            res->copyFrom(ifl);
-            return res;
-#endif
+          GpuIndexIVFSQ* res = new GpuIndexIVFSQ(resources,
+                  ivf_sq->d, ivf_sq->nlist, ivf_sq->metric_type, config);
+
+          if(reserveVecs > 0 && ivf_sq->ntotal == 0) {
+              res->reserveMemory(reserveVecs);
+          }
+
+          res->copyFrom(ivf_sq);
+          return res;
         } else if(auto ifl = dynamic_cast<const faiss::IndexIVFFlat *>(index)) {
           GpuIndexIVFFlatConfig config;
           config.device = device;
@@ -188,40 +183,6 @@ struct ToGpuCloner: faiss::Cloner, GpuClonerOptions {
 
 };
 
-struct CpuToGpuCloner: faiss::Cloner, CpuToGpuClonerOptions {
-    GpuResources *resources;
-    int device;
-
-    CpuToGpuCloner(GpuResources *resources, int device,
-                const CpuToGpuClonerOptions &options):
-        CpuToGpuClonerOptions(options), resources(resources), device(device)
-    {}
-
-    Index *clone_Index(const Index *index) override {
-        if(auto ifl = dynamic_cast<const faiss::IndexIVFScalarQuantizer*>(index)) {
-          GpuIndexIVFSQConfig config;
-          config.device = device;
-          config.indicesOptions = indicesOptions;
-          config.flatConfig.useFloat16 = useFloat16CoarseQuantizer;
-          config.flatConfig.storeTransposed = storeTransposed;
-
-          GpuIndexIVFSQ* res = new GpuIndexIVFSQ(resources,
-                  ifl->d, ifl->nlist, ifl->metric_type, config);
-
-          if(reserveVecs > 0 && ifl->ntotal == 0) {
-              res->reserveMemory(reserveVecs);
-          }
-
-          res->copyFrom(ifl);
-          return res;
-        } else {
-            return Cloner::clone_Index(index);
-        }
-    }
-
-};
-
-
 faiss::Index * index_cpu_to_gpu(
        GpuResources* resources, int device,
        const faiss::Index *index,
@@ -229,18 +190,6 @@ faiss::Index * index_cpu_to_gpu(
 {
     GpuClonerOptions defaults;
     ToGpuCloner cl(resources, device, options ? *options : defaults);
-    return cl.clone_Index(index);
-}
-
-faiss::Index* cpu_to_gpu(
-       GpuResources* resources, int device,
-       const faiss::Index *index,
-       const CpuToGpuClonerOptions *options) {
-    if (!options || !(options->readonly)) {
-        return index_cpu_to_gpu(resources, device, index, options);
-    }
-
-    CpuToGpuCloner cl(resources, device, *options);
     return cl.clone_Index(index);
 }
 
